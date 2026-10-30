@@ -1,0 +1,478 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png"
+          href="{{ url_for('static', filename='finsight-logo.png') }}">
+    <title>{{ stock.symbol if stock else 'Stock Insights' }} | Finsight</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap"
+          rel="stylesheet">
+
+    <style>
+        :root {
+            --olive: #454b2b;
+            --olive-dark: #30351f;
+            --sage: #a4aa88;
+            --cream: #f5f1e6;
+            --gold: #c6a45b;
+            --black: #171812;
+            --muted: #777765;
+            --white: #fffdf7;
+            --border: #e2dccb;
+            --green: #47734f;
+            --red: #a64d42;
+        }
+
+        * { box-sizing: border-box; }
+
+        html { min-height: 100%; }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            background:
+                radial-gradient(ellipse at 50% 0%, #eeeadb 0%, transparent 65%),
+                var(--cream);
+            color: var(--black);
+            font-family: "DM Sans", Arial, sans-serif;
+        }
+
+        header {
+            width: 100%;
+            min-height: 86px;
+            padding: 16px 7%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            flex-wrap: wrap;
+            background: var(--olive);
+            border-bottom: 3px solid var(--gold);
+        }
+
+        .brand-area {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+        }
+
+        .brand-logo {
+            width: 46px;
+            height: 46px;
+            object-fit: contain;
+        }
+
+        .brand {
+            color: var(--gold);
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: 27px;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .tagline {
+            margin-top: 5px;
+            color: var(--white);
+            font-size: 9px;
+            letter-spacing: 2.2px;
+        }
+
+        .header-link {
+            color: var(--white);
+            text-decoration: none;
+        }
+
+        .header-link:hover { color: var(--gold); }
+
+        .nav-link {
+            padding: 10px 16px;
+            border: 1px solid rgba(198, 164, 91, 0.55);
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        main {
+            width: min(1080px, 88%);
+            margin: 0 auto;
+            padding: 48px 0 56px;
+            flex: 1 0 auto;
+        }
+
+        .eyebrow {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            color: var(--olive);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 26px;
+            height: 2px;
+            background: var(--gold);
+        }
+
+        .stock-heading {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        h1, h2 {
+            font-family: "Playfair Display", Georgia, serif;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(38px, 6vw, 58px);
+            line-height: 1.1;
+            letter-spacing: -1px;
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .timestamp { margin: 12px 0 0; }
+
+        .market-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            background: rgba(255, 253, 247, 0.75);
+            color: var(--olive);
+            font-size: 12px;
+        }
+
+        .market-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--sage);
+        }
+
+        .section-heading {
+            margin: 0 0 16px;
+            font-size: 23px;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 17px;
+        }
+
+        .metric {
+            position: relative;
+            min-width: 0;
+            min-height: 145px;
+            padding: 23px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--white);
+            box-shadow: 0 5px 18px rgba(48, 53, 31, 0.035);
+            transition: transform 160ms ease, box-shadow 160ms ease;
+        }
+
+        .metric:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(48, 53, 31, 0.08);
+        }
+
+        .metric::before {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--gold);
+            content: "";
+        }
+
+        .metric-label {
+            margin-bottom: 17px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .metric-value {
+            overflow-wrap: anywhere;
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: clamp(23px, 3vw, 32px);
+            font-weight: 600;
+            line-height: 1.25;
+        }
+
+        .change-positive { color: var(--green); }
+        .change-negative { color: var(--red); }
+
+        .metric-note {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .disclaimer {
+            margin-top: 25px;
+            padding: 16px 18px;
+            border-left: 3px solid var(--sage);
+            background: rgba(255, 253, 247, 0.7);
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .error-panel {
+            padding: 35px;
+            border: 1px solid #e2bdb4;
+            border-radius: 12px;
+            background: #fff8f5;
+        }
+
+        .error-panel h1 {
+            color: var(--red);
+            font-size: 34px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 24px;
+            color: var(--olive);
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .back-link:hover { color: var(--gold); }
+
+        footer {
+            width: 100%;
+            margin-top: auto;
+            padding: 23px 6%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 22px;
+            flex-wrap: wrap;
+            background: var(--black);
+            border-top: 3px solid var(--gold);
+            color: var(--gold);
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        footer a {
+            color: var(--gold);
+            font-family: "DM Sans", Arial, sans-serif;
+            font-size: 12px;
+            text-decoration: none;
+        }
+
+        footer a:hover { color: var(--white); }
+
+        .footer-brand {
+            margin-right: 12px;
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 760px) {
+            header { padding: 16px 5%; }
+
+            main {
+                width: 90%;
+                padding-top: 32px;
+            }
+
+            .metric-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 12px;
+            }
+
+            .metric {
+                padding: 18px;
+                min-height: 130px;
+            }
+
+            .stock-heading { align-items: flex-start; }
+        }
+
+        @media (max-width: 440px) {
+            .metric-grid { grid-template-columns: 1fr; }
+
+            .metric { min-height: 115px; }
+
+            .brand-logo {
+                width: 38px;
+                height: 38px;
+            }
+
+            .brand { font-size: 24px; }
+            footer { gap: 14px; }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <a class="brand-area header-link" href="{{ url_for('index') }}">
+            <img class="brand-logo"
+                 src="{{ url_for('static', filename='finsight-logo.png') }}"
+                 alt="Finsight logo">
+            <div>
+                <div class="brand">Finsight</div>
+                <div class="tagline">SEE BEYOND NUMBERS</div>
+            </div>
+        </a>
+
+        <a class="header-link nav-link" href="{{ url_for('my_tables') }}">
+            My Tables&nbsp; →
+        </a>
+    </header>
+
+    <main>
+        {% if error %}
+            <section class="error-panel">
+                <div class="eyebrow">Stock insights</div>
+                <h1>Unable to load stock</h1>
+                <p class="muted">{{ error }}</p>
+                <a class="back-link" href="{{ url_for('my_tables') }}">
+                    ← Back to My Tables
+                </a>
+            </section>
+
+        {% elif stock %}
+            <div class="eyebrow">Stock insights</div>
+
+            <div class="stock-heading">
+                <div>
+                    <h1>{{ stock.symbol }}</h1>
+                    <p class="muted timestamp">
+                        Latest available hourly candle:<br>
+                        {{ stock.last_updated }}
+                    </p>
+                </div>
+
+                <div class="market-label">
+                    <span class="market-dot"></span>
+                    Hourly market data
+                </div>
+            </div>
+
+            <h2 class="section-heading">Market overview</h2>
+
+            <div class="metric-grid">
+                <div class="metric">
+                    <div class="metric-label">Price · {{ stock.currency }}</div>
+                    <div class="metric-value">
+                        {{ "%.2f"|format(stock.price) if stock.price is not none else "N/A" }}
+                    </div>
+                    <div class="metric-note">Latest available hourly price</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Hourly price change</div>
+                    <div class="metric-value {% if stock.price_change_percent is not none and stock.price_change_percent > 0 %}change-positive{% elif stock.price_change_percent is not none and stock.price_change_percent < 0 %}change-negative{% endif %}">
+                        {% if stock.price_change_percent is not none and stock.price_change_percent > 0 %}+{% endif %}{{ stock.price_change_percent if stock.price_change_percent is not none else "N/A" }}{% if stock.price_change_percent is not none %}%{% endif %}
+                    </div>
+                    <div class="metric-note">
+                        Price change: {{ stock.price_change if stock.price_change is not none else "N/A" }}
+                    </div>
+                </div>
+
+                <!-- Daily RSI: use the daily value, not stock.rsi -->
+                <div class="metric">
+                    <div class="metric-label">Daily RSI (14)</div>
+                    <div class="metric-value">
+                        {{ "%.2f"|format(stock.rsi_daily) if stock.rsi_daily is defined and stock.rsi_daily is not none else "N/A" }}
+                    </div>
+                    <div class="metric-note">
+                        Calculated from daily closing prices
+                    </div>
+                </div>
+
+                <!-- Hourly RSI: shown separately -->
+                <div class="metric">
+                    <div class="metric-label">Hourly RSI (14)</div>
+                    <div class="metric-value">
+                        {{ "%.2f"|format(stock.rsi_hourly) if stock.rsi_hourly is defined and stock.rsi_hourly is not none else (("%.2f"|format(stock.rsi)) if stock.rsi is defined and stock.rsi is not none else "N/A") }}
+                    </div>
+                    <div class="metric-note">
+                        Calculated from hourly closing prices
+                    </div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Hourly MACD</div>
+                    <div class="metric-value">
+                        {{ "%.3f"|format(stock.macd) if stock.macd is not none else "N/A" }}
+                    </div>
+                    <div class="metric-note">
+                        Moving average convergence/divergence
+                    </div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">MACD Signal</div>
+                    <div class="metric-value">
+                        {{ "%.3f"|format(stock.macd_signal) if stock.macd_signal is not none else "N/A" }}
+                    </div>
+                    <div class="metric-note">Hourly signal-line value</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Relative volume</div>
+                    <div class="metric-value">
+                        {{ stock.relative_volume ~ "×" if stock.relative_volume is not none else "N/A" }}
+                    </div>
+                    <div class="metric-note">
+                        Latest hourly volume versus its previous 20-hour average
+                    </div>
+                </div>
+            </div>
+
+            <div class="disclaimer">
+                <strong>Important:</strong> RSI and MACD are calculated from historical
+                market data. Daily RSI uses daily closing prices; hourly RSI uses hourly
+                closing prices. Values may differ from other providers because of
+                differences in data, candle timing and calculation settings. These
+                indicators do not guarantee future performance and are not financial advice.
+            </div>
+
+            <a class="back-link" href="{{ url_for('my_tables') }}">
+                ← Back to My Tables
+            </a>
+        {% endif %}
+    </main>
+
+    <footer>
+        <span class="footer-brand">FINSIGHT · SEE BEYOND NUMBERS</span>
+        <a href="{{ url_for('login') }}">Log in</a>
+        <a href="{{ url_for('signup') }}">Sign up</a>
+    </footer>
+</body>
+</html>

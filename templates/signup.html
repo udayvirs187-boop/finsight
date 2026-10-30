@@ -1,0 +1,138 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png"
+      href="{{ url_for('static', filename='finsight-logo.png') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign Up | Finsight</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <header class="topbar">
+        <div class="header-left">
+            <a class="brand logo-link" href="{{ url_for('index') }}">
+                <img
+                    class="header-logo"
+                    src="{{ url_for('static', filename='finsight-logo.png') }}"
+                    alt="Finsight logo"
+                >
+            </a>
+        </div>
+
+        <div class="quote">SEE BEYOND NUMBERS</div>
+
+        <a class="primary-link" href="{{ url_for('index') }}">Home</a>
+    </header>
+
+    <main class="dashboard">
+        <section class="auth-container">
+            <div class="eyebrow">GET STARTED</div>
+
+            <h1>Create your account</h1>
+            <p>Build your workspace. See beyond numbers.</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <div class="note-box">{{ message }}</div>
+                {% endfor %}
+            {% endwith %}
+
+            <form action="{{ url_for('signup') }}" method="POST">
+                <div class="field">
+                    <label for="username">Username</label>
+                    <input
+                        id="username"
+                        name="username"
+                        type="text"
+                        placeholder="Choose a username"
+                        minlength="3"
+                        maxlength="30"
+                        autocomplete="username"
+                        required
+                    >
+                </div>
+
+                <div class="field" style="margin-top: 16px;">
+                    <label for="email">Email</label>
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        placeholder="Enter your email"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
+
+                <div class="field" style="margin-top: 16px;">
+                    <label for="password">Password</label>
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        placeholder="At least 8 characters"
+                        minlength="8"
+                        autocomplete="new-password"
+                        required
+                    >
+                </div>
+
+                <div class="field" style="margin-top: 16px;">
+                    <label for="confirm_password">Confirm password</label>
+                    <input
+                        id="confirm_password"
+                        name="confirm_password"
+                        type="password"
+                        placeholder="Enter your password again"
+                        minlength="8"
+                        autocomplete="new-password"
+                        required
+                    >
+                </div>
+
+                <button class="primary-link" type="submit">
+                    Create account
+                </button>
+            </form>
+
+            <hr>
+
+            <p>
+                Already have an account?
+                <a href="{{ url_for('login') }}">Log in</a>.
+            </p>
+        </section>
+    </main>
+
+    <footer class="bottom-bar">
+        <span>Finsight · See Beyond Numbers</span>
+
+        <div>
+            <a href="{{ url_for('login') }}">Log in</a>
+            &nbsp; | &nbsp;
+            <a href="{{ url_for('signup') }}">Sign up</a>
+        </div>
+    </footer>
+
+    <script>
+        const signupForm = document.querySelector("form");
+
+        signupForm.addEventListener("submit", function (event) {
+            const password = document.getElementById("password").value;
+            const confirmation = document.getElementById("confirm_password").value;
+
+            if (password !== confirmation) {
+                event.preventDefault();
+                alert("Your passwords do not match.");
+            }
+        });
+    </script>
+</body>
+</html>
+```

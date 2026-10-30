@@ -1,0 +1,562 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png"
+          href="{{ url_for('static', filename='finsight-logo.png') }}">
+    <title>{{ view.name }} | Finsight</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap"
+          rel="stylesheet">
+
+    <style>
+        :root {
+            --olive: #454b2b;
+            --olive-dark: #30351f;
+            --sage: #a4aa88;
+            --cream: #f5f1e6;
+            --gold: #c6a45b;
+            --black: #171812;
+            --muted: #777765;
+            --white: #fffdf7;
+            --border: #ded8c7;
+            --red: #a64d42;
+            --green: #47734f;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            min-height: 100%;
+        }
+
+        /* MAIN FOOTER FIX */
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            background: var(--cream);
+            color: var(--black);
+            font-family: Arial, sans-serif;
+        }
+
+        header {
+            flex-shrink: 0;
+            background: var(--olive);
+            color: var(--white);
+            border-bottom: 3px solid var(--gold);
+            padding: 20px 6%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .brand {
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: 30px;
+            font-weight: 700;
+            color: var(--gold);
+            text-decoration: none;
+        }
+
+        .tagline {
+            font-size: 10px;
+            letter-spacing: 3px;
+            margin-top: 4px;
+            color: var(--white);
+        }
+
+        nav {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: var(--white);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: var(--gold);
+        }
+
+        /* MAIN CONTENT EXPANDS TO PUSH FOOTER DOWN */
+        main {
+            width: min(1100px, 90%);
+            flex: 1 0 auto;
+            margin: 40px auto 0;
+            padding-bottom: 40px;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: var(--olive);
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .page-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        h1, h2 {
+            font-family: "Playfair Display", Georgia, serif;
+        }
+
+        h1 {
+            font-size: clamp(30px, 5vw, 43px);
+            margin: 0 0 8px;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            margin: 0;
+        }
+
+        .report-status {
+            background: #e7e6d7;
+            color: var(--olive-dark);
+            border: 1px solid #d0d1b9;
+            border-radius: 30px;
+            padding: 9px 14px;
+            font-size: 12px;
+        }
+
+        .notification-panel {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--gold);
+            border-radius: 10px;
+            padding: 22px;
+            margin-bottom: 30px;
+        }
+
+        .notification-panel h2 {
+            font-size: 22px;
+            margin: 0 0 8px;
+        }
+
+        .notification-panel p {
+            color: var(--muted);
+            line-height: 1.6;
+            margin: 0 0 17px;
+        }
+
+        .notification-controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        button, .button {
+            display: inline-block;
+            padding: 12px 17px;
+            border: 1px solid var(--olive);
+            border-radius: 5px;
+            background: var(--olive);
+            color: var(--white);
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        button:hover, .button:hover {
+            background: var(--olive-dark);
+        }
+
+        .secondary-button {
+            background: transparent;
+            color: var(--olive);
+            border-color: var(--gold);
+        }
+
+        .secondary-button:hover {
+            background: #f0ead8;
+            color: var(--olive-dark);
+        }
+
+        .flash-message {
+            padding: 13px 16px;
+            margin-bottom: 18px;
+            background: #e7eadc;
+            border: 1px solid #cbd3b8;
+            border-radius: 6px;
+        }
+
+        .flash-error {
+            background: #f6e6e1;
+            border-color: #e2bdb4;
+        }
+
+        .stocks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+        }
+
+        .stock-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 22px;
+            min-width: 0;
+        }
+
+        .stock-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .ticker {
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: 25px;
+            margin: 0;
+        }
+
+        .company {
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .price {
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: 28px;
+            margin: 22px 0 5px;
+            overflow-wrap: anywhere;
+        }
+
+        .change {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .positive {
+            color: var(--green);
+        }
+
+        .negative {
+            color: var(--red);
+        }
+
+        .indicators {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 22px;
+        }
+
+        .indicator {
+            background: #f0eee4;
+            padding: 12px;
+            border-radius: 6px;
+            min-width: 0;
+        }
+
+        .indicator-label {
+            color: var(--muted);
+            font-size: 11px;
+            margin-bottom: 7px;
+        }
+
+        .indicator-value {
+            font-weight: 700;
+            font-size: 15px;
+            overflow-wrap: anywhere;
+        }
+
+        .updated {
+            color: var(--muted);
+            font-size: 11px;
+            margin-top: 18px;
+            overflow-wrap: anywhere;
+        }
+
+        .error-card {
+            border-color: #e2bdb4;
+            background: #fff8f5;
+        }
+
+        .error-text {
+            color: var(--red);
+            line-height: 1.5;
+        }
+
+        .remove-form {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+
+        .remove-button {
+            background: transparent;
+            border-color: #d8b7af;
+            color: var(--red);
+            padding: 9px 12px;
+        }
+
+        .remove-button:hover {
+            background: #f6e6e1;
+            color: var(--red);
+        }
+
+        .empty-state {
+            padding: 40px 20px;
+            background: var(--white);
+            border: 1px dashed var(--border);
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        /* FOOTER STAYS AT THE BOTTOM */
+        footer {
+            margin-top: auto;
+            flex-shrink: 0;
+            width: 100%;
+            background: var(--black);
+            border-top: 3px solid var(--gold);
+            color: var(--gold);
+            text-align: center;
+            padding: 23px;
+            font-family: "Playfair Display", Georgia, serif;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                padding: 18px 5%;
+            }
+
+            main {
+                width: 92%;
+                margin-top: 25px;
+            }
+
+            .notification-controls button {
+                width: 100%;
+            }
+
+            .price {
+                font-size: 24px;
+            }
+        }
+    </style>
+
+    <script src="{{ url_for('static', filename='notifications.js') }}" defer></script>
+</head>
+
+<body>
+    <header>
+        <div>
+            <a class="brand" href="{{ url_for('index') }}">Finsight</a>
+            <div class="tagline">SEE BEYOND NUMBERS</div>
+        </div>
+
+        <nav>
+            <a href="{{ url_for('index') }}">Dashboard</a>
+            <a href="{{ url_for('my_tables') }}">My Tables</a>
+            <a href="{{ url_for('create_ticker') }}">+ Create View</a>
+        </nav>
+    </header>
+
+    <main>
+        <a class="back-link" href="{{ url_for('my_tables') }}">
+            ← Back to My Tables
+        </a>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash-message {% if category == 'error' %}flash-error{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endwith %}
+
+        <div class="page-heading">
+            <div>
+                <h1>{{ view.name }}</h1>
+                <p class="subtitle">
+                    Research dashboard · {{ view.tickers | length }} ticker(s)
+                </p>
+            </div>
+
+            {% if view.hourly_reports %}
+                <span class="report-status">Hourly reports enabled</span>
+            {% else %}
+                <span class="report-status">Hourly reports disabled</span>
+            {% endif %}
+        </div>
+
+        <section class="notification-panel">
+            <h2>Hourly report notifications</h2>
+            <p>
+                Enable browser notifications for this ticker view. You can
+                then send a test notification to check the connection.
+                Hourly notifications are sent when hourly reports are enabled.
+            </p>
+
+            <div class="notification-controls">
+                <button
+                    type="button"
+                    data-enable-push
+                    data-view-id="{{ view.id }}">
+                    Enable notifications
+                </button>
+
+                <button
+                    type="button"
+                    class="secondary-button"
+                    data-test-push
+                    data-view-id="{{ view.id }}">
+                    🔔 Send test notification
+                </button>
+            </div>
+        </section>
+
+        {% if error %}
+            <div class="flash-message flash-error">{{ error }}</div>
+        {% endif %}
+
+        {% if stocks %}
+            <div class="stocks-grid">
+                {% for item in stocks %}
+                    {% if item.data %}
+                        {% set stock = item.data %}
+
+                        <article class="stock-card">
+                            <div class="stock-top">
+                                <div>
+                                    <h2 class="ticker">{{ item.symbol }}</h2>
+                                    <div class="company">
+                                        {{ stock.company_name
+                                           if stock.company_name is defined
+                                           else item.symbol }}
+                                    </div>
+                                </div>
+
+                                <span class="report-status">
+                                    {{ stock.currency or "" }}
+                                </span>
+                            </div>
+
+                            <div class="price">
+                                {{ stock.currency }} {{ "%.2f"|format(stock.price) }}
+                            </div>
+
+                            <div class="change {% if stock.price_change_percent >= 0 %}positive{% else %}negative{% endif %}">
+                                {% if stock.price_change_percent >= 0 %}+{% endif %}
+                                {{ stock.price_change_percent }}%
+                                ({{ stock.price_change }})
+                            </div>
+
+                            <div class="indicators">
+                                <div class="indicator">
+                                    <div class="indicator-label">RSI (14)</div>
+                                    <div class="indicator-value">
+                                        {% if stock.rsi is not none %}
+                                            {{ "%.2f"|format(stock.rsi) }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="indicator">
+                                    <div class="indicator-label">MACD</div>
+                                    <div class="indicator-value">
+                                        {% if stock.macd is not none %}
+                                            {{ "%.4f"|format(stock.macd) }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="indicator">
+                                    <div class="indicator-label">Signal</div>
+                                    <div class="indicator-value">
+                                        {% if stock.macd_signal is not none %}
+                                            {{ "%.4f"|format(stock.macd_signal) }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="indicator">
+                                    <div class="indicator-label">Relative volume</div>
+                                    <div class="indicator-value">
+                                        {% if stock.relative_volume is not none %}
+                                            {{ stock.relative_volume }}×
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="updated">
+                                Latest market data: {{ stock.last_updated }}
+                            </div>
+
+                            <form
+                                class="remove-form"
+                                method="POST"
+                                action="{{ url_for(
+                                    'delete_ticker_from_view',
+                                    view_id=view.id,
+                                    symbol=item.symbol
+                                ) }}"
+                                onsubmit="return confirm('Remove {{ item.symbol }} from this view?');">
+
+                                <button type="submit" class="remove-button">
+                                    Remove {{ item.symbol }}
+                                </button>
+                            </form>
+                        </article>
+
+                    {% else %}
+                        <article class="stock-card error-card">
+                            <h2 class="ticker">{{ item.symbol }}</h2>
+                            <p class="error-text">{{ item.error }}</p>
+                        </article>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+        {% else %}
+            <section class="empty-state">
+                <h2>No stocks in this view</h2>
+                <p>Add a ticker to start researching it in Finsight.</p>
+                <a class="button" href="{{ url_for('create_ticker') }}">
+                    Create a ticker view
+                </a>
+            </section>
+        {% endif %}
+    </main>
+
+    <footer>
+        FINSIGHT · SEE BEYOND NUMBERS
+    </footer>
+</body>
+</html>
+```

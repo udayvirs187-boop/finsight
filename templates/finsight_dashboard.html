@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png"
+      href="{{ url_for('static', filename='finsight-logo.png') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Finsight | See Beyond Numbers</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+</head>
+<body>
+<header>
+    <a class="brand-area header-link" href="index.html">
+        <img class="brand-logo" src="finsight-logo.png" alt="Finsight logo">
+        <div>
+            <div class="brand">Finsight</div>
+            <div class="tagline">SEE BEYOND NUMBERS</div>
+        </div>
+    </a>
+    <div class="add-wrap">
+        <button class="add-button" id="addButton" aria-label="Open menu">+</button>
+        <div class="dropdown" id="addDropdown">
+            <a href="create_ticker.html">Create tickers</a>
+            <a href="my_tables.html">View tickers</a>
+        </div>
+    </div>
+</header>
+
+<main>
+    <div class="eyebrow">Financial intelligence</div>
+    <h1>See beyond the numbers.</h1>
+    <p class="muted">Your stocks. Your watchlists. Your research, in one place.</p>
+
+    <div class="metric-grid">
+        <div class="metric">
+            <div class="metric-label">Tracked tables</div>
+            <div class="metric-value" id="tableCount">03</div>
+        </div>
+        <div class="metric">
+            <div class="metric-label">Demo indicator</div>
+            <div class="metric-value">RSI</div>
+        </div>
+        <div class="metric">
+            <div class="metric-label">Report schedule</div>
+            <div class="metric-value">Hourly*</div>
+        </div>
+    </div>
+
+    <section class="card">
+        <h2>Your research workspace</h2>
+        <p class="muted">
+            Create ticker tables, open your watchlists and prepare your stock research.
+            Market values on this prototype are not live.
+        </p>
+        <div class="toolbar">
+            <a class="button" href="create_ticker.html">+ Create tickers</a>
+            <a class="button secondary" href="my_tables.html">View tickers</a>
+        </div>
+    </section>
+
+    <section class="card" style="margin-top:20px">
+        <h2>Technical indicators</h2>
+        <p class="muted">RSI, MACD, hourly price change and relative volume will appear here once you connect a market-data source.</p>
+        <a class="button secondary" href="my_tables.html">Open your tables</a>
+    </section>
+</main>
+
+<footer>
+    <a href="login.html">Log in</a>
+    <a href="signup.html">Sign up</a>
+</footer>
+
+<script>
+    const saved = JSON.parse(localStorage.getItem("finsightTables") || "[]");
+    document.getElementById("tableCount").textContent =
+        String(3 + saved.length).padStart(2, "0");
+</script>
+</body>
+</html>

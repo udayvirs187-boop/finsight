@@ -1,0 +1,581 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png"
+      href="{{ url_for('static', filename='finsight-logo.png') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Create Ticker View | Finsight</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <style>
+        :root {
+            --olive: #343d29;
+            --olive-light: #48543a;
+            --sage: #a5ad91;
+            --cream: #f6f3e9;
+            --white: #fffdf7;
+            --gold: #d4bd79;
+            --gold-light: #e4d29c;
+            --black: #171914;
+            --text: #25271f;
+            --muted: #77796d;
+            --border: #dedbce;
+            --red: #a33b32;
+            --green: #3e6946;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--cream);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        .topbar {
+            min-height: 76px;
+            padding: 16px 5%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            background: var(--olive);
+            color: var(--gold-light);
+            border-bottom: 2px solid var(--gold);
+        }
+
+        .brand {
+            color: var(--gold-light);
+            font: 700 30px "Playfair Display", Georgia, serif;
+            text-decoration: none;
+            letter-spacing: -0.7px;
+        }
+
+        .header-quote {
+            font: 600 11px Arial, sans-serif;
+            letter-spacing: 3px;
+            text-align: center;
+        }
+
+        .back-button {
+            padding: 10px 14px;
+            border: 1px solid rgba(228, 210, 156, 0.5);
+            border-radius: 5px;
+            color: var(--gold-light);
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .container {
+            width: min(760px, 90%);
+            margin: 42px auto;
+            flex: 1;
+        }
+
+        .eyebrow {
+            margin-bottom: 10px;
+            color: var(--olive);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--olive);
+            font: 600 38px "Playfair Display", Georgia, serif;
+        }
+
+        .subtitle {
+            margin: 12px 0 27px;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .form-card {
+            padding: 30px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            box-shadow: 0 8px 25px rgba(37, 39, 31, 0.045);
+        }
+
+        .field {
+            margin-bottom: 25px;
+        }
+
+        .field > label {
+            display: block;
+            margin-bottom: 9px;
+            color: var(--olive);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            min-height: 45px;
+            padding: 12px 13px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            outline: none;
+            background: var(--white);
+            color: var(--text);
+            font: inherit;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--olive);
+            box-shadow: 0 0 0 3px rgba(52, 61, 41, 0.09);
+        }
+
+        .ticker-input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .ticker-input-row input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        button {
+            font: inherit;
+        }
+
+        .add-button {
+            min-width: 85px;
+            padding: 0 17px;
+            border: 1px solid var(--olive);
+            border-radius: 5px;
+            background: var(--olive);
+            color: var(--gold-light);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .add-button:hover {
+            background: var(--olive-light);
+        }
+
+        .help {
+            margin: 9px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .stock-preview {
+            margin-top: 14px;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--cream);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .stock-preview[hidden] {
+            display: none;
+        }
+
+        .preview-title {
+            color: var(--olive);
+            font-weight: 700;
+        }
+
+        .preview-muted {
+            color: var(--muted);
+        }
+
+        .ticker-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 9px;
+            margin-top: 15px;
+        }
+
+        .empty-list {
+            width: 100%;
+            padding: 17px;
+            border: 1px dashed var(--border);
+            border-radius: 6px;
+            color: var(--muted);
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .ticker-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 11px;
+            border: 1px solid #d7d7c7;
+            border-radius: 5px;
+            background: #f0f1e7;
+            color: var(--olive);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .remove-ticker {
+            width: 22px;
+            height: 22px;
+            padding: 0;
+            border: 0;
+            border-radius: 4px;
+            background: transparent;
+            color: var(--muted);
+            font-size: 17px;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .remove-ticker:hover {
+            background: #e5d8ce;
+            color: var(--red);
+        }
+
+        .settings {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--cream);
+        }
+
+        .settings-title {
+            margin-bottom: 15px;
+            color: var(--olive);
+            font: 600 19px "Playfair Display", Georgia, serif;
+        }
+
+        .setting-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .setting-option input {
+            width: 17px;
+            height: 17px;
+            margin: 2px 0 0;
+            flex-shrink: 0;
+            accent-color: var(--olive);
+            cursor: pointer;
+        }
+
+        .setting-option strong {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text);
+            font-size: 13px;
+        }
+
+        .setting-option span {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .error-message {
+            margin-bottom: 20px;
+            padding: 14px 16px;
+            border: 1px solid #e2b8b2;
+            border-radius: 5px;
+            background: #fff0ed;
+            color: var(--red);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .error-message strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .create-button,
+        .cancel-button {
+            display: inline-flex;
+            min-height: 46px;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 18px;
+            border-radius: 5px;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .create-button {
+            flex: 1;
+            border: 1px solid var(--olive);
+            background: var(--olive);
+            color: var(--gold-light);
+        }
+
+        .create-button:hover {
+            background: var(--olive-light);
+        }
+
+        .create-button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        .cancel-button {
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--olive);
+        }
+
+        .cancel-button:hover {
+            background: var(--cream);
+        }
+
+        .footer {
+            margin-top: auto;
+            padding: 23px 5%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            background: var(--black);
+            color: var(--gold);
+            font-size: 12px;
+        }
+
+        .footer a {
+            color: var(--gold-light);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 550px) {
+            .topbar {
+                padding: 15px 5%;
+                gap: 10px;
+            }
+
+            .brand {
+                font-size: 25px;
+            }
+
+            .header-quote {
+                display: none;
+            }
+
+            .container {
+                margin: 28px auto;
+            }
+
+            h1 {
+                font-size: 31px;
+            }
+
+            .form-card {
+                padding: 19px;
+            }
+
+            .ticker-input-row {
+                flex-wrap: wrap;
+            }
+
+            .ticker-input-row input {
+                flex-basis: 100%;
+            }
+
+            .add-button {
+                min-height: 43px;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .cancel-button {
+                min-height: 42px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topbar">
+    <a class="brand" href="{{ url_for('index') }}">Finsight</a>
+
+    <div class="header-quote">SEE BEYOND NUMBERS</div>
+
+    <a class="back-button" href="{{ url_for('index') }}">
+        ← Dashboard
+    </a>
+</header>
+
+<main class="container">
+    <div class="eyebrow">Your market workspace</div>
+
+    <h1>Create a ticker view</h1>
+
+    <p class="subtitle">
+        Name your view and add the stocks you want to research.
+        Finsight will look up each company using Yahoo Finance.
+    </p>
+
+    {% if error %}
+    <div class="error-message" role="alert">
+        <strong>Couldn't create ticker view</strong>
+        <div>{{ error }}</div>
+    </div>
+    {% endif %}
+
+    <form class="form-card"
+          method="POST"
+          action="{{ url_for('create_ticker') }}"
+          id="createTickerForm">
+
+        <div class="field">
+            <label for="name">Ticker view name</label>
+
+            <input type="text"
+                   id="name"
+                   name="name"
+                   maxlength="60"
+                   placeholder="e.g. My tech stocks"
+                   value="{{ form_name | default('', true) }}"
+                   required>
+        </div>
+
+        <div class="field">
+            <label for="tickerInput">Stock ticker symbol</label>
+
+            <div class="ticker-input-row">
+                <input type="text"
+                       id="tickerInput"
+                       placeholder="e.g. AAPL or VUAG.L"
+                       autocomplete="off">
+
+                <button class="add-button"
+                        type="button"
+                        id="addTicker">
+                    + Add
+                </button>
+            </div>
+
+            <p class="help">
+                Enter a ticker and press Add or Enter. Repeat to add
+                multiple stocks. For example, AAPL, NVDA or VUAG.L.
+            </p>
+
+            <div id="stockLookup"
+                 class="stock-preview"
+                 aria-live="polite"
+                 hidden>
+            </div>
+
+            <div class="ticker-list" id="tickerList">
+                <div class="empty-list">No stocks added yet.</div>
+            </div>
+
+            <p class="help" id="tickerCount">0 stocks added</p>
+        </div>
+
+        <input type="hidden"
+               name="tickers"
+               id="allTickers"
+               value="{{ selected_tickers | default([], true) | join(',') }}">
+
+        <div class="settings">
+            <div class="settings-title">Report preferences</div>
+
+            <label class="setting-option">
+                <input type="checkbox"
+                       name="hourly_reports"
+                       value="yes"
+                       {% if hourly_reports_checked %}checked{% endif %}>
+
+                <div>
+                    <strong>Hourly reports</strong>
+                    <span>
+                        Generate a market report every hour for this
+                        ticker view while Finsight is running.
+                    </span>
+                </div>
+            </label>
+        </div>
+
+        <div class="actions">
+            <button type="submit"
+                    class="create-button"
+                    id="createViewButton">
+                Create ticker view →
+            </button>
+
+            <a href="{{ url_for('index') }}" class="cancel-button">
+                Cancel
+            </a>
+        </div>
+    </form>
+</main>
+
+<footer class="footer">
+    <span>Finsight · See Beyond Numbers</span>
+
+    <div>
+        <a href="{{ url_for('login') }}">Log in</a>
+        &nbsp; | &nbsp;
+        <a href="{{ url_for('signup') }}">Sign up</a>
+    </div>
+</footer>
+
+<script>
+    window.initialSelectedTickers =
+        {{ selected_tickers | default([], true) | tojson }};
+</script>
+
+<script src="{{ url_for('static', filename='create_ticker.js') }}"
+        defer></script>
+
+</body>
+</html>

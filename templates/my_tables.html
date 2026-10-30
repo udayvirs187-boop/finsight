@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Tables | Finsight</title>
+
+    <link rel="icon" type="image/png"
+          href="{{ url_for('static', filename='finsight-logo.png') }}">
+
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap"
+          rel="stylesheet">
+
+    <style>
+        :root {
+            --olive: #424b32;
+            --olive-light: #596448;
+            --sage: #dce2d3;
+            --cream: #f6f2e9;
+            --black: #171914;
+            --gold: #d5b875;
+            --text: #25271f;
+            --muted: #77796e;
+            --white: #ffffff;
+            --border: #dedbce;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            min-height: 100%;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--cream);
+            color: var(--text);
+        }
+
+        /* TOP QUOTE BAR */
+        .top-bar {
+            background: var(--olive);
+            color: var(--gold);
+            text-align: center;
+            padding: 11px 16px;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+        }
+
+        /* HEADER */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 20px 6%;
+            background: var(--cream);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .brand img {
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
+        }
+
+        .brand-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 29px;
+            font-weight: 700;
+            color: var(--olive);
+            line-height: 1.1;
+        }
+
+        .tagline {
+            margin-top: 5px;
+            color: var(--muted);
+            font-size: 9px;
+            letter-spacing: 2px;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: var(--text);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        nav a:hover {
+            color: var(--olive-light);
+        }
+
+        nav a.active {
+            color: var(--olive);
+            border-bottom: 2px solid var(--gold);
+            padding-bottom: 5px;
+        }
+
+        /* MAIN CONTENT */
+        main {
+            flex: 1 0 auto;
+            width: 100%;
+            max-width: 1250px;
+            margin: 0 auto;
+            padding: 45px 6% 60px;
+        }
+
+        .eyebrow {
+            color: var(--olive);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            margin: 0;
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(32px, 5vw, 45px);
+            font-weight: 600;
+            color: var(--black);
+        }
+
+        .intro {
+            max-width: 620px;
+            margin: 14px 0 30px;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin: 32px 0 18px;
+        }
+
+        .section-heading h2 {
+            margin: 0;
+            font-family: 'Playfair Display', serif;
+            font-size: 23px;
+            font-weight: 600;
+        }
+
+        .view-count {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        /* CREATE BUTTON */
+        .create-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 19px;
+            border: 1px solid var(--gold);
+            border-radius: 4px;
+            background: var(--olive);
+            color: var(--gold);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: background 0.2s ease;
+        }
+
+        .create-button:hover {
+            background: var(--olive-light);
+        }
+
+        /* TICKER VIEW CARDS */
+        .views-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .view-card {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            padding: 23px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-top: 3px solid var(--olive);
+            border-radius: 5px;
+            box-shadow: 0 4px 14px rgba(30, 35, 24, 0.035);
+            transition: transform 0.2s ease,
+                        box-shadow 0.2s ease;
+        }
+
+        .view-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 22px rgba(30, 35, 24, 0.08);
+        }
+
+        .card-label {
+            margin-bottom: 10px;
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .view-card h3 {
+            margin: 0 0 14px;
+            overflow-wrap: anywhere;
+            font-family: 'Playfair Display', serif;
+            font-size: 23px;
+            font-weight: 600;
+            color: var(--black);
+        }
+
+        .ticker-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .ticker-chip {
+            display: inline-block;
+            padding: 6px 10px;
+            border: 1px solid #d8dfce;
+            border-radius: 4px;
+            background: var(--sage);
+            color: var(--olive);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .card-details {
+            margin: 0 0 20px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        .card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid #eeece4;
+        }
+
+        .ticker-count {
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .open-link {
+            color: var(--olive);
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .open-link:hover {
+            color: #78815e;
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            padding: 55px 20px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.55);
+            border: 1px dashed #c9c8b8;
+            border-radius: 5px;
+        }
+
+        .empty-icon {
+            margin-bottom: 15px;
+            color: var(--olive);
+            font-size: 34px;
+        }
+
+        .empty-state h2 {
+            margin: 0 0 10px;
+            font-family: 'Playfair Display', serif;
+            font-size: 25px;
+        }
+
+        .empty-state p {
+            max-width: 420px;
+            margin: 0 auto 22px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        /* FOOTER — PUSHED TO BOTTOM */
+        .bottom-bar {
+            width: 100%;
+            flex-shrink: 0;
+            margin-top: auto;
+            padding: 23px 6%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            background: var(--black);
+            color: var(--gold);
+            border-top: 1px solid var(--gold);
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-brand img {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+        }
+
+        .footer-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 19px;
+            font-weight: 600;
+        }
+
+        .footer-tagline {
+            margin-top: 3px;
+            font-size: 8px;
+            letter-spacing: 1.5px;
+        }
+
+        .footer-right {
+            color: #c8c0a8;
+            font-size: 11px;
+            text-align: right;
+            line-height: 1.8;
+        }
+
+        @media (max-width: 650px) {
+            header {
+                align-items: flex-start;
+                flex-direction: column;
+                padding: 18px 5%;
+            }
+
+            nav {
+                gap: 17px;
+            }
+
+            main {
+                padding: 32px 5% 45px;
+            }
+
+            .section-heading {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .views-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .bottom-bar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .footer-right {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="top-bar">
+        SEE BEYOND NUMBERS &nbsp;·&nbsp; MAKE EVERY INSIGHT COUNT
+    </div>
+
+    <header>
+        <div class="brand">
+            <img src="{{ url_for('static', filename='finsight-logo.png') }}"
+                 alt="Finsight logo">
+
+            <div>
+                <div class="brand-name">Finsight</div>
+                <div class="tagline">SEE BEYOND NUMBERS</div>
+            </div>
+        </div>
+
+        <nav>
+            <a href="{{ url_for('index') }}">Dashboard</a>
+            <a href="{{ url_for('my_tables') }}" class="active">My Tables</a>
+            <a href="{{ url_for('create_ticker') }}">Create Ticker View</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="eyebrow">Your research workspace</div>
+
+        <h1>My Tables</h1>
+
+        <p class="intro">
+            Keep your favourite stocks organised in one place.
+            Open a ticker view to explore market data and indicators
+            for the companies you're following.
+        </p>
+
+        <div class="section-heading">
+            <h2>Your ticker views</h2>
+
+            <a class="create-button"
+               href="{{ url_for('create_ticker') }}">
+                <span>+</span> Create Ticker View
+            </a>
+        </div>
+
+        {% if views %}
+
+            <div class="views-grid">
+
+                {% for view in views %}
+
+                    <article class="view-card">
+
+                        <div class="card-label">Ticker view</div>
+
+                        <h3>{{ view.name }}</h3>
+
+                        <div class="ticker-list">
+                            {% for ticker in view.tickers %}
+                                <span class="ticker-chip">
+                                    {{ ticker }}
+                                </span>
+                            {% endfor %}
+                        </div>
+
+                        <p class="card-details">
+                            {% if view.hourly_reports %}
+                                Hourly reports: Enabled
+                            {% else %}
+                                Hourly reports: Disabled
+                            {% endif %}
+                            <br>
+                            Your selected stocks, organised for research.
+                        </p>
+
+                        <div class="card-footer">
+                            <span class="ticker-count">
+                                {{ view.tickers | length }}
+                                {% if view.tickers | length == 1 %}
+                                    ticker
+                                {% else %}
+                                    tickers
+                                {% endif %}
+                            </span>
+
+                            <a class="open-link"
+                               href="{{ url_for('view_table', id=view.id) }}">
+                                Open view →
+                            </a>
+                        </div>
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-state">
+                <div class="empty-icon">◇</div>
+
+                <h2>Your research starts here</h2>
+
+                <p>
+                    You haven't created any ticker views yet.
+                    Create your first view to organise the stocks
+                    you want to research.
+                </p>
+
+                <a class="create-button"
+                   href="{{ url_for('create_ticker') }}">
+                    + Create your first view
+                </a>
+            </div>
+
+        {% endif %}
+    </main>
+
+    <footer class="bottom-bar">
+        <div class="footer-brand">
+            <img src="{{ url_for('static', filename='finsight-logo.png') }}"
+                 alt="Finsight logo">
+
+            <div>
+                <div class="footer-name">Finsight</div>
+                <div class="footer-tagline">SEE BEYOND NUMBERS</div>
+            </div>
+        </div>
+
+        <div class="footer-right">
+            Market research, organised.<br>
+            For educational and informational purposes.
+        </div>
+    </footer>
+
+</body>
+</html>
