@@ -1,4 +1,4 @@
-
+```python
 import json
 import os
 import re
@@ -34,14 +34,17 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or secrets.token_hex(32)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-# Set FLASK_SECRET_KEY in your environment for sessions to survive app restarts.
 
 DATABASE = Path(__file__).with_name("finsight.db")
 PRIVATE_KEY = Path(__file__).with_name("private_key.pem")
 PUBLIC_KEY_FILE = Path(__file__).with_name("vapid_public_key.txt")
 
-# Replace this example with a contact email you control.
-VAPID_CLAIMS = {"sub": "mailto:finsight@example.com"}
+VAPID_CLAIMS = {
+    "sub": os.environ.get(
+        "VAPID_SUBJECT",
+        "mailto:finsight@example.com",
+    )
+}
 
 
 # --------------------------------------------------
@@ -124,7 +127,6 @@ def initialise_database():
                     f"ALTER TABLE stocks ADD COLUMN {column} {definition}"
                 )
 
-        # A browser can subscribe separately to multiple ticker views.
         connection.execute("""
             CREATE TABLE IF NOT EXISTS push_subscriptions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -139,8 +141,6 @@ def initialise_database():
             )
         """)
 
-        # Migrate subscriptions created by the earlier version, which
-        # used endpoint alone as its unique key.
         subscription_columns = {
             row["name"]
             for row in connection.execute(
@@ -170,8 +170,6 @@ def initialise_database():
                     break
 
             if endpoint_is_unique:
-                # Preserve existing subscriptions while upgrading the
-                # old endpoint-only uniqueness constraint.
                 connection.execute("""
                     ALTER TABLE push_subscriptions
                     RENAME TO push_subscriptions_old
@@ -199,7 +197,9 @@ def initialise_database():
                     FROM push_subscriptions_old
                 """)
 
-                connection.execute("DROP TABLE push_subscriptions_old")
+                connection.execute(
+                    "DROP TABLE push_subscriptions_old"
+                )
 
 
 # --------------------------------------------------
@@ -214,33 +214,61 @@ def get_stock_metadata(symbol):
 
     ticker = yf.Ticker(symbol)
 
+    # Check price history first. This can work even when Yahoo's
+    # separate company-information request fails.
     try:
-        info = ticker.get_info()
+        history = ticker.history(period="5d", interval="1d")
     except Exception as error:
         raise ValueError(
-            f"Yahoo Finance could not retrieve information for {symbol}."
+            f"Yahoo Finance could not retrieve price history for {symbol}."
         ) from error
 
-    company_name = info.get("longName") or info.get("shortName")
-
-    if not info or not company_name:
+    if history.empty or "Close" not in history.columns:
         raise ValueError(
-            f"No company information was found for {symbol}. "
-            "Check the ticker symbol."
+            f"No market data found for {symbol}. "
+            "Check the ticker symbol or try again later."
         )
+
+    history_close = history["Close"].dropna()
+
+    if history_close.empty:
+        raise ValueError(f"No usable prices were found for {symbol}.")
+
+    # Company information is optional because Yahoo sometimes blocks it.
+    info = {}
+
+    try:
+        info = ticker.get_info() or {}
+    except Exception:
+        app.logger.warning(
+            "Company metadata unavailable for %s; using fallback.",
+            symbol,
+        )
+
+    company_name = (
+        info.get("longName")
+        or info.get("shortName")
+        or symbol
+    )
 
     current_price = (
         info.get("regularMarketPrice")
         or info.get("currentPrice")
-        or info.get("previousClose")
+        or float(history_close.iloc[-1])
     )
 
     return {
         "ticker": symbol,
         "company_name": company_name,
-        "exchange": info.get("fullExchangeName") or info.get("exchange"),
+        "exchange": (
+            info.get("fullExchangeName")
+            or info.get("exchange")
+        ),
         "currency": info.get("currency"),
-        "logo_url": info.get("logo_url") or info.get("logoUrl"),
+        "logo_url": (
+            info.get("logo_url")
+            or info.get("logoUrl")
+        ),
         "current_price": current_price,
     }
 
@@ -315,6 +343,9 @@ def get_stock_results(symbols):
                 "error": None,
             })
         except Exception as error:
+            app.logger.exception(
+                "Could not retrieve market data for %s", symbol
+            )
             results.append({
                 "symbol": symbol,
                 "data": None,
@@ -322,18 +353,6 @@ def get_stock_results(symbols):
             })
 
     return results
-
-
-def validate_tickers(tickers):
-    invalid_tickers = []
-
-    for ticker in tickers:
-        try:
-            get_stock_data(ticker)
-        except Exception:
-            invalid_tickers.append(ticker)
-
-    return invalid_tickers
 
 
 # --------------------------------------------------
@@ -420,10 +439,12 @@ def stock_lookup(symbol):
         return jsonify({
             "success": False,
             "error": str(error),
-        }), 404
+        }), 400
 
     except Exception:
-        app.logger.exception("Stock lookup failed for %s", symbol)
+        app.logger.exception(
+            "Stock lookup failed for %s", symbol
+        )
 
         return jsonify({
             "success": False,
@@ -515,23 +536,11 @@ def create_ticker():
             **form_values,
         )
 
-    invalid_tickers = validate_tickers(tickers)
-
-    if invalid_tickers:
-        return render_template(
-            "create_ticker.html",
-            error=(
-                "We couldn't validate market data for: "
-                + ", ".join(invalid_tickers)
-                + ". Check the symbols or try again later."
-            ),
-            **form_values,
-        )
-
     try:
+        # Fetch data once per ticker before saving it.
         for symbol in tickers:
-            metadata = get_stock_metadata(symbol)
             indicators = get_stock_data(symbol)
+            metadata = get_stock_metadata(symbol)
             save_stock(metadata, indicators)
 
         with get_db_connection() as connection:
@@ -539,6 +548,17 @@ def create_ticker():
                 INSERT INTO ticker_views (name, tickers, hourly_reports)
                 VALUES (?, ?, ?)
             """, (name, json.dumps(tickers), hourly_reports))
+
+    except ValueError as error:
+        app.logger.warning(
+            "Ticker view validation failed: %s", error
+        )
+
+        return render_template(
+            "create_ticker.html",
+            error=str(error),
+            **form_values,
+        )
 
     except Exception:
         app.logger.exception("Failed to save ticker view")
@@ -636,7 +656,10 @@ def delete_ticker_from_view(view_id, symbol):
                 WHERE id = ?
             """, (json.dumps(tickers), view_id))
 
-            flash(f"{symbol} was removed from {view['name']}.", "success")
+            flash(
+                f"{symbol} was removed from {view['name']}.",
+                "success",
+            )
 
     return redirect(url_for("my_tables"))
 
@@ -659,6 +682,10 @@ def stock_detail(symbol):
         )
 
     except Exception:
+        app.logger.exception(
+            "Could not load stock detail for %s", symbol
+        )
+
         return render_template(
             "stock_detail.html",
             stock=None,
@@ -670,7 +697,7 @@ def stock_detail(symbol):
 
 
 # --------------------------------------------------
-# LOGIN AND SIGNUP PAGES
+# LOGIN AND SIGNUP
 # --------------------------------------------------
 
 @app.route("/login.html", methods=["GET", "POST"])
@@ -693,18 +720,23 @@ def login():
                 (email,),
             ).fetchone()
 
-        if user is None or not check_password_hash(user["password_hash"], password):
+        if (
+            user is None
+            or not check_password_hash(user["password_hash"], password)
+        ):
             flash("Email or password is incorrect.", "error")
             return render_template("login.html")
 
         session.clear()
         session["user_id"] = user["id"]
         session["username"] = user["username"]
+
         flash(f"Welcome back, {user['username']}!", "success")
         return redirect(url_for("index"))
 
     if session.get("user_id"):
         return redirect(url_for("index"))
+
     return render_template("login.html")
 
 
@@ -733,7 +765,10 @@ def signup():
             return render_template("signup.html")
 
         if len(password) < 8:
-            flash("Your password must be at least 8 characters long.", "error")
+            flash(
+                "Your password must be at least 8 characters long.",
+                "error",
+            )
             return render_template("signup.html")
 
         if password != confirm_password:
@@ -752,6 +787,7 @@ def signup():
                     (username, email, password_hash),
                 )
                 user_id = cursor.lastrowid
+
         except sqlite3.IntegrityError:
             flash(
                 "That username or email is already registered. "
@@ -763,11 +799,13 @@ def signup():
         session.clear()
         session["user_id"] = user_id
         session["username"] = username
+
         flash("Your Finsight account has been created.", "success")
         return redirect(url_for("index"))
 
     if session.get("user_id"):
         return redirect(url_for("index"))
+
     return render_template("signup.html")
 
 
@@ -842,6 +880,7 @@ def service_worker():
 def vapid_public_key():
     try:
         return jsonify({"publicKey": get_vapid_public_key()})
+
     except Exception:
         app.logger.exception("Could not load VAPID public key")
         return jsonify({
@@ -941,7 +980,7 @@ def test_push():
     return jsonify({
         "error": (
             "The push service did not accept the notification. "
-            "Check the PyCharm terminal for details."
+            "Check the application logs for details."
         )
     }), 502
 
@@ -1016,7 +1055,6 @@ def generate_hourly_reports():
         report = "\n".join(report_lines)
         app.logger.info("\n%s", report)
 
-        # Notify all browser subscriptions for this view.
         with get_db_connection() as connection:
             subscriptions = connection.execute("""
                 SELECT endpoint, subscription_json
@@ -1058,9 +1096,9 @@ scheduler.add_job(
 # START THE APP
 # --------------------------------------------------
 
-if __name__ == "__main__":
-    initialise_database()
+initialise_database()
 
+if __name__ == "__main__":
     if not scheduler.running:
         scheduler.start()
 
@@ -1070,3 +1108,4 @@ if __name__ == "__main__":
     )
 
     app.run(debug=True, use_reloader=False)
+```
