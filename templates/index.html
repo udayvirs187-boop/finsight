@@ -1,153 +1,320 @@
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finsight — See Beyond Numbers</title>
-
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='style.css') }}">
-
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap"
-          rel="stylesheet">
-
-    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Finsight</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-
 <body>
+  <header class="topbar">
+    <a class="logo" href="/">Finsight<span class="logo-mark">◆</span></a>
+    <nav class="top-links">
+      <a href="#report">Hourly report</a>
+      <a href="#ticker">My ticker</a>
+    </nav>
+    <button class="profile" aria-label="Profile">U</button>
+  </header>
 
-    <!-- TOP BAR -->
-    <header class="top-bar">
+  <section class="quote-bar">
+    <p>“See beyond the numbers.”</p>
+  </section>
 
-        <a href="{{ url_for('index') }}" class="brand">
-            <img src="{{ url_for('static', filename='finsight-logo.png') }}"
-                 alt="Finsight"
-                 class="brand-logo">
-            <span>Finsight</span>
-        </a>
+  <main class="main">
+    <section class="ticker-heading" id="ticker">
+      <div>
+        <p class="eyebrow">YOUR TICKER VIEW</p>
+        <h1 id="tickerTitle">Tech Watchlist</h1>
+        <p class="subline">AAPL · MSFT · NVDA <span class="dot">•</span> Demo market data</p>
+      </div>
 
-        <p class="tagline">SEE BEYOND NUMBERS</p>
+      <div class="dropdown">
+        <button id="addTicker" class="add-button" aria-expanded="false">
+          ＋ Add ticker <span>⌄</span>
+        </button>
+        <div id="tickerMenu" class="menu hidden">
+          <button data-mode="create">Create a ticker</button>
+          <button data-mode="view">View a ticker</button>
+          <button data-mode="list">See your ticker list</button>
+        </div>
+      </div>
+    </section>
 
-        <nav class="top-navigation">
-            <div class="dropdown">
-                <button class="dropdown-button"
-                        type="button"
-                        data-menu-toggle="ticker-menu"
-                        aria-expanded="false">
-                    Ticker views ▾
-                </button>
+    <section class="price-row">
+      <div>
+        <p class="label">Latest price <span class="demo-label">ILLUSTRATIVE</span></p>
+        <div class="price-line">
+          <strong id="price">$100.00</strong>
+          <span id="change" class="change up">+1.24%</span>
+        </div>
+        <p class="subline">Illustrative price movement</p>
+      </div>
 
-                <div class="dropdown-menu"
-                     data-menu="ticker-menu"
-                     hidden>
-                    <a href="{{ url_for('create_ticker') }}">
-                        Create ticker view
-                    </a>
-                    <a href="{{ url_for('my_tables') }}">
-                        View ticker views
-                    </a>
-                </div>
-            </div>
-        </nav>
+      <div class="chart-wrap">
+        <p class="label">Intraday price movement</p>
+        <svg class="chart" viewBox="0 0 600 150" preserveAspectRatio="none" role="img" aria-label="Illustrative stock price chart">
+          <defs>
+            <linearGradient id="fill" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="#7d8b55" stop-opacity=".25"/>
+              <stop offset="100%" stop-color="#7d8b55" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path class="chart-fill" d="M0,126 L38,113 L73,119 L109,90 L145,99 L183,75 L221,84 L259,57 L298,69 L334,43 L370,50 L410,30 L450,42 L490,21 L530,31 L566,13 L600,17 L600,150 L0,150 Z"/>
+          <path class="chart-stroke" d="M0,126 L38,113 L73,119 L109,90 L145,99 L183,75 L221,84 L259,57 L298,69 L334,43 L370,50 L410,30 L450,42 L490,21 L530,31 L566,13 L600,17"/>
+        </svg>
+        <div class="chart-axis">
+          <span>Market open</span>
+          <span>Now</span>
+        </div>
+      </div>
+    </section>
 
-    </header>
+    <section class="report" id="report">
+      <div class="report-heading">
+        <div>
+          <p class="eyebrow">LATEST SNAPSHOT</p>
+          <h2>Hourly report</h2>
+        </div>
+        <span class="timestamp">Illustrative values</span>
+      </div>
 
-    <!-- MAIN DASHBOARD -->
-    <main class="dashboard">
+      <div class="report-grid">
+        <article class="metric">
+          <span class="metric-label">Price change · 1h</span>
+          <strong class="up">+1.24%</strong>
+          <p>Short-term price movement</p>
+        </article>
 
-        <section class="welcome-section">
-            <p class="eyebrow">YOUR FINANCIAL DASHBOARD</p>
+        <article class="metric">
+          <span class="metric-label">RSI (14)</span>
+          <strong>64.2</strong>
+          <p>Momentum indicator</p>
+        </article>
 
-            <h1>Good to see you.</h1>
+        <article class="metric">
+          <span class="metric-label">MACD</span>
+          <strong>Positive</strong>
+          <p>Momentum signal</p>
+        </article>
 
-            <p class="subtitle">
-                Your stocks. Your insights. All in one place.
-            </p>
+        <article class="metric">
+          <span class="metric-label">Price vs VWAP</span>
+          <strong>Above</strong>
+          <p>Price above session average</p>
+        </article>
 
-            <a href="{{ url_for('create_ticker') }}"
-               class="primary-button">
-                + Create ticker view
-            </a>
-        </section>
+        <article class="metric">
+          <span class="metric-label">Relative volume</span>
+          <strong>1.8×</strong>
+          <p>Compared with typical volume</p>
+        </article>
 
-        <!-- TICKER VIEWS -->
-        <section class="section">
+        <article class="metric">
+          <span class="metric-label">Risk flags</span>
+          <strong class="risk">Review volatility</strong>
+          <p>Watch for sudden price moves</p>
+        </article>
+      </div>
 
-            <div class="section-heading">
-                <h2>Your ticker views</h2>
-
-                <a href="{{ url_for('my_tables') }}">
-                    View all →
-                </a>
-            </div>
-
-            {% if views %}
-
-                <div class="ticker-view-grid">
-
-                    {% for view in views %}
-
-                        <article class="ticker-view-card">
-
-                            <h3>{{ view.name }}</h3>
-
-                            <p class="muted">
-                                Your saved stock collection
-                            </p>
-
-                            <div class="ticker-tags">
-                                {% for ticker in view.tickers %}
-                                    <span class="ticker-tag">
-                                        {{ ticker }}
-                                    </span>
-                                {% endfor %}
-                            </div>
-
-                            <a href="{{ url_for('view_table', id=view.id) }}"
-                               class="card-link">
-                                Open ticker view →
-                            </a>
-
-                        </article>
-
-                    {% endfor %}
-
-                </div>
-
-            {% else %}
-
-                <div class="empty-state">
-                    <h3>Nothing here yet.</h3>
-
-                    <p>
-                        Create your first ticker view to start following
-                        stocks and exploring market insights.
-                    </p>
-
-                    <a href="{{ url_for('create_ticker') }}"
-                       class="primary-button">
-                        Create your first ticker view
-                    </a>
-                </div>
-
-            {% endif %}
-
-        </section>
-
-    </main>
-
-    <!-- BOTTOM BAR -->
-    <footer class="bottom-bar">
-
-        <span class="footer-brand">Finsight</span>
-
-        <div class="footer-links">
-            <a href="{{ url_for('login') }}">Login</a>
-            <a href="{{ url_for('signup') }}">Sign up</a>
+      <div class="report-notes">
+        <div>
+          <h3>Key development</h3>
+          <p>
+            This area will show a concise summary of recent price movement,
+            volume and technical indicators when connected to market data.
+          </p>
         </div>
 
-    </footer>
+        <div class="levels">
+          <p><span>Nearest support</span><strong id="support">$97.50</strong></p>
+          <p><span>Nearest resistance</span><strong id="resistance">$102.00</strong></p>
+        </div>
+      </div>
 
+      <p class="disclaimer">
+        Illustrative values only — this page is not connected to live market
+        data and does not provide investment advice.
+      </p>
+    </section>
+
+    <section id="tickerListSection" class="ticker-list-section hidden">
+      <div class="report-heading">
+        <h2>Your tickers</h2>
+        <button id="closeList" class="plain-button">Close ×</button>
+      </div>
+      <div id="tickerList"></div>
+    </section>
+  </main>
+
+  <footer class="bottom-bar">
+    <span>Finsight <b>◆</b></span>
+    <span class="footer-quote">See beyond the numbers.</span>
+    <div>
+      <button id="signUp">Sign up</button>
+      <button id="logIn">Log in</button>
+    </div>
+  </footer>
+
+  <dialog id="tickerDialog">
+    <form id="tickerForm">
+      <div class="dialog-top">
+        <div>
+          <p class="eyebrow">MY TICKERS</p>
+          <h2 id="dialogTitle">Create a ticker</h2>
+        </div>
+        <button type="button" id="closeDialog" class="plain-button">×</button>
+      </div>
+
+      <label for="symbolInput">Ticker symbol</label>
+      <input id="symbolInput" placeholder="e.g. AAPL" required>
+
+      <label for="companyInput">Company name <span>(optional)</span></label>
+      <input id="companyInput" placeholder="e.g. Apple Inc.">
+
+      <p id="message" class="message"></p>
+
+      <div class="dialog-actions">
+        <button type="button" id="cancelDialog" class="cancel-button">Cancel</button>
+        <button id="submitTicker" class="add-button" type="submit">Create ticker</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    // Default ticker view: Tech Watchlist
+    let tickers = [
+      {symbol: "AAPL", company: "Apple Inc.", exchange: "NASDAQ", price: "$100.00", change: "+1.24%"},
+      {symbol: "MSFT", company: "Microsoft Corporation", exchange: "NASDAQ", price: "$100.00", change: "+0.85%"},
+      {symbol: "NVDA", company: "NVIDIA Corporation", exchange: "NASDAQ", price: "$100.00", change: "+2.10%"}
+    ];
+
+    let mode = "create";
+
+    $("addTicker").addEventListener("click", () => {
+      const open = !$("tickerMenu").classList.contains("hidden");
+      $("tickerMenu").classList.toggle("hidden", open);
+      $("addTicker").setAttribute("aria-expanded", String(!open));
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".dropdown")) {
+        $("tickerMenu").classList.add("hidden");
+        $("addTicker").setAttribute("aria-expanded", "false");
+      }
+    });
+
+    $("tickerMenu").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-mode]");
+      if (!button) return;
+
+      mode = button.dataset.mode;
+      $("tickerMenu").classList.add("hidden");
+
+      if (mode === "list") {
+        renderList();
+        $("tickerListSection").classList.remove("hidden");
+        $("tickerListSection").scrollIntoView({behavior: "smooth"});
+        return;
+      }
+
+      $("tickerForm").reset();
+      $("message").textContent = "";
+      $("dialogTitle").textContent =
+        mode === "view" ? "View a ticker" : "Create a ticker";
+      $("submitTicker").textContent =
+        mode === "view" ? "View ticker" : "Create ticker";
+
+      $("tickerDialog").showModal();
+    });
+
+    function renderList() {
+      $("tickerList").replaceChildren();
+
+      tickers.forEach((ticker) => {
+        const row = document.createElement("button");
+        row.className = "ticker-list-row";
+
+        const details = document.createElement("span");
+        const symbol = document.createElement("b");
+        const company = document.createElement("small");
+
+        symbol.textContent = ticker.symbol;
+        company.textContent = ticker.company;
+        details.append(symbol, company);
+
+        const price = document.createElement("span");
+        price.className = "row-price";
+        price.textContent = ticker.price;
+
+        const action = document.createElement("span");
+        action.textContent = "View →";
+
+        row.append(details, price, action);
+        row.addEventListener("click", () => selectTicker(ticker));
+        $("tickerList").appendChild(row);
+      });
+    }
+
+    function selectTicker(ticker) {
+      $("tickerTitle").textContent =
+        ticker.symbol + " · " + ticker.company;
+      $("price").textContent = ticker.price;
+      $("change").textContent = ticker.change;
+      $("tickerListSection").classList.add("hidden");
+      $("ticker").scrollIntoView({behavior: "smooth"});
+    }
+
+    $("tickerForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const symbol = $("symbolInput").value.trim().toUpperCase();
+      const company = $("companyInput").value.trim() || symbol;
+      const found = tickers.find((ticker) => ticker.symbol === symbol);
+
+      if (mode === "view") {
+        if (!found) {
+          $("message").textContent =
+            "That ticker is not in your list. Create it first.";
+          return;
+        }
+
+        $("tickerDialog").close();
+        selectTicker(found);
+        return;
+      }
+
+      if (found) {
+        $("message").textContent = "That ticker is already in your list.";
+        return;
+      }
+
+      const ticker = {
+        symbol,
+        company,
+        exchange: "NASDAQ",
+        price: "—",
+        change: "Awaiting data"
+      };
+
+      tickers.push(ticker);
+      $("tickerDialog").close();
+      selectTicker(ticker);
+    });
+
+    $("closeDialog").addEventListener("click", () => $("tickerDialog").close());
+    $("cancelDialog").addEventListener("click", () => $("tickerDialog").close());
+    $("closeList").addEventListener("click", () => $("tickerListSection").classList.add("hidden"));
+
+    $("signUp").addEventListener("click", () => {
+      window.location.href = "{{ url_for('signup') }}";
+    });
+
+    $("logIn").addEventListener("click", () => {
+      window.location.href = "{{ url_for('login') }}";
+    });
+  </script>
 </body>
 </html>
