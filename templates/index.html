@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finsight | See Beyond Numbers</title>
+    <title>Finsight — See Beyond Numbers</title>
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='style.css') }}">
@@ -17,166 +17,137 @@
 
 <body>
 
-<header class="top-bar">
-    <a href="{{ url_for('index') }}" class="brand">
-        <img src="{{ url_for('static', filename='finsight-logo.png') }}"
-             alt="Finsight logo"
-             class="brand-logo"
-             onerror="this.style.display='none'">
+    <!-- TOP BAR -->
+    <header class="top-bar">
 
-        <span class="brand-name">Finsight</span>
-    </a>
-
-    <p class="tagline">SEE BEYOND NUMBERS</p>
-
-    <nav class="top-navigation">
-        <a href="{{ url_for('index') }}">Dashboard</a>
-        <a href="{{ url_for('my_tables') }}">My ticker views</a>
-        <a href="{{ url_for('create_ticker') }}" class="add-button">
-            + Create ticker view
+        <a href="{{ url_for('index') }}" class="brand">
+            <img src="{{ url_for('static', filename='finsight-logo.png') }}"
+                 alt="Finsight"
+                 class="brand-logo">
+            <span>Finsight</span>
         </a>
-    </nav>
-</header>
 
-<main class="dashboard">
+        <p class="tagline">SEE BEYOND NUMBERS</p>
 
-    <section class="welcome-section">
-        <div>
-            <p class="eyebrow">YOUR MARKET OVERVIEW</p>
-            <h1>Your dashboard</h1>
+        <nav class="top-navigation">
+            <div class="dropdown">
+                <button class="dropdown-button"
+                        type="button"
+                        data-menu-toggle="ticker-menu"
+                        aria-expanded="false">
+                    Ticker views ▾
+                </button>
+
+                <div class="dropdown-menu"
+                     data-menu="ticker-menu"
+                     hidden>
+                    <a href="{{ url_for('create_ticker') }}">
+                        Create ticker view
+                    </a>
+                    <a href="{{ url_for('my_tables') }}">
+                        View ticker views
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+    </header>
+
+    <!-- MAIN DASHBOARD -->
+    <main class="dashboard">
+
+        <section class="welcome-section">
+            <p class="eyebrow">YOUR FINANCIAL DASHBOARD</p>
+
+            <h1>Good to see you.</h1>
+
             <p class="subtitle">
-                Your saved ticker views and the stocks you're tracking.
+                Your stocks. Your insights. All in one place.
             </p>
-        </div>
 
-        <a href="{{ url_for('create_ticker') }}" class="primary-button">
-            + Add ticker view
-        </a>
-    </section>
+            <a href="{{ url_for('create_ticker') }}"
+               class="primary-button">
+                + Create ticker view
+            </a>
+        </section>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="flash-messages">
-                {% for category, message in messages %}
-                    <p class="flash-message {{ category }}">
-                        {{ message }}
-                    </p>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
+        <!-- TICKER VIEWS -->
+        <section class="section">
 
-    <section class="section">
-        <div class="section-heading">
-            <h2>Your ticker views</h2>
-            <a href="{{ url_for('my_tables') }}">View all →</a>
-        </div>
+            <div class="section-heading">
+                <h2>Your ticker views</h2>
 
-        {% if views %}
-            <div class="ticker-view-grid">
-
-                {% for view in views %}
-                    <article class="ticker-view-card">
-
-                        <div class="card-top">
-                            <span class="card-label">TICKER VIEW</span>
-
-                            {% if view.hourly_reports %}
-                                <span class="status">
-                                    Reports enabled
-                                </span>
-                            {% endif %}
-                        </div>
-
-                        <h3>{{ view.name }}</h3>
-
-                        <p class="ticker-count">
-                            {{ view.tickers | length }}
-                            stock{% if view.tickers | length != 1 %}s{% endif %}
-                            tracked
-                        </p>
-
-                        <div class="ticker-tags">
-                            {% for ticker in view.tickers %}
-                                <span class="ticker-tag">
-                                    {{ ticker }}
-                                </span>
-                            {% endfor %}
-                        </div>
-
-                        <a class="card-link"
-                           href="{{ url_for('view_table', id=view.id) }}">
-                            Open ticker view →
-                        </a>
-
-                    </article>
-                {% endfor %}
-
-            </div>
-
-        {% else %}
-            <div class="empty-state">
-                <div class="empty-icon">＋</div>
-                <h3>No ticker views yet</h3>
-                <p>
-                    Create your first ticker view to start tracking
-                    stocks and exploring market data.
-                </p>
-
-                <a href="{{ url_for('create_ticker') }}"
-                   class="primary-button">
-                    Create your first ticker view
+                <a href="{{ url_for('my_tables') }}">
+                    View all →
                 </a>
             </div>
-        {% endif %}
-    </section>
 
-    <section class="section">
-        <div class="section-heading">
-            <h2>Tracked stocks</h2>
-            <span class="muted">From your ticker views</span>
-        </div>
+            {% if views %}
 
-        {% if stocks %}
-            <div class="stock-grid">
-                {% for stock in stocks %}
-                    <article class="stock-card">
-                        <div>
-                            <h3>{{ stock.name }}</h3>
-                            <span class="muted">{{ stock.symbol }}</span>
-                        </div>
+                <div class="ticker-view-grid">
 
-                        <a href="{{ url_for('stock_detail', symbol=stock.symbol) }}"
-                           class="card-link">
-                            View stock →
-                        </a>
-                    </article>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="simple-empty-state">
-                <p>
-                    Stock information will appear here after you create
-                    a ticker view.
-                </p>
-            </div>
-        {% endif %}
-    </section>
+                    {% for view in views %}
 
-</main>
+                        <article class="ticker-view-card">
 
-<footer class="bottom-bar">
-    <span>Finsight</span>
+                            <h3>{{ view.name }}</h3>
 
-    <div>
-        {% if session.get('user_id') %}
-            <a href="{{ url_for('logout') }}">Log out</a>
-        {% else %}
+                            <p class="muted">
+                                Your saved stock collection
+                            </p>
+
+                            <div class="ticker-tags">
+                                {% for ticker in view.tickers %}
+                                    <span class="ticker-tag">
+                                        {{ ticker }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+
+                            <a href="{{ url_for('view_table', id=view.id) }}"
+                               class="card-link">
+                                Open ticker view →
+                            </a>
+
+                        </article>
+
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <div class="empty-state">
+                    <h3>Nothing here yet.</h3>
+
+                    <p>
+                        Create your first ticker view to start following
+                        stocks and exploring market insights.
+                    </p>
+
+                    <a href="{{ url_for('create_ticker') }}"
+                       class="primary-button">
+                        Create your first ticker view
+                    </a>
+                </div>
+
+            {% endif %}
+
+        </section>
+
+    </main>
+
+    <!-- BOTTOM BAR -->
+    <footer class="bottom-bar">
+
+        <span class="footer-brand">Finsight</span>
+
+        <div class="footer-links">
             <a href="{{ url_for('login') }}">Login</a>
             <a href="{{ url_for('signup') }}">Sign up</a>
-        {% endif %}
-    </div>
-</footer>
+        </div>
+
+    </footer>
 
 </body>
 </html>
