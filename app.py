@@ -40,12 +40,12 @@ DATABASE = Path(__file__).with_name("finsight.db")
 PRIVATE_KEY = Path(__file__).with_name("private_key.pem")
 PUBLIC_KEY_FILE = Path(__file__).with_name("vapid_public_key.txt")
 
-VAPID_CLAIMS = {
-    "sub": os.environ.get(
-        "VAPID_SUBJECT",
-        "mailto:finsight@example.com",
-    )
-}
+VAPID_SUBJECT = (
+    os.environ.get("VAPID_SUBJECT", "").strip()
+    or "mailto:udayvirs187@gmail.com"
+)
+
+VAPID_CLAIMS = {"sub": VAPID_SUBJECT}
 
 
 def login_required(view_function):
