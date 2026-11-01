@@ -1,4 +1,3 @@
-
 import json
 import os
 import re
@@ -36,7 +35,14 @@ app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 DATABASE = Path(__file__).with_name("finsight.db")
-PRIVATE_KEY = Path(__file__).with_name("private_key.pem")
+
+PRIVATE_KEY = Path(
+    os.environ.get(
+        "VAPID_PRIVATE_KEY_PATH",
+        str(Path(__file__).with_name("private_key.pem")),
+    )
+)
+
 PUBLIC_KEY_FILE = Path(__file__).with_name("vapid_public_key.txt")
 
 VAPID_CLAIMS = {
@@ -214,8 +220,6 @@ def get_stock_metadata(symbol):
 
     ticker = yf.Ticker(symbol)
 
-    # Check price history first. This can work even when Yahoo's
-    # separate company-information request fails.
     try:
         history = ticker.history(period="5d", interval="1d")
     except Exception as error:
@@ -234,7 +238,6 @@ def get_stock_metadata(symbol):
     if history_close.empty:
         raise ValueError(f"No usable prices were found for {symbol}.")
 
-    # Company information is optional because Yahoo sometimes blocks it.
     info = {}
 
     try:
@@ -537,7 +540,6 @@ def create_ticker():
         )
 
     try:
-        # Fetch data once per ticker before saving it.
         for symbol in tickers:
             indicators = get_stock_data(symbol)
             metadata = get_stock_metadata(symbol)
