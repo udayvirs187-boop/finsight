@@ -1,9 +1,11 @@
+
 import json
 import os
 import re
 import secrets
 import sqlite3
 from datetime import datetime
+from functools import wraps
 from pathlib import Path
 
 import yfinance as yf
@@ -34,25 +36,30 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY") or secrets.token_hex(32)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
-
-
 DATABASE = Path(__file__).with_name("finsight.db")
-
-PRIVATE_KEY = Path(
-    os.environ.get(
-        "VAPID_PRIVATE_KEY_PATH",
-        str(Path(__file__).with_name("private_key.pem")),
-    )
-)
-
+PRIVATE_KEY = Path(__file__).with_name("private_key.pem")
 PUBLIC_KEY_FILE = Path(__file__).with_name("vapid_public_key.txt")
 
 VAPID_CLAIMS = {
-    "sub": (
-        os.environ.get("VAPID_SUBJECT")
-        or "mailto:udayvirs187@gmail.com"
-    ).strip()
+    "sub": os.environ.get(
+        "VAPID_SUBJECT",
+        "mailto:finsight@example.com",
+    )
 }
+
+
+def login_required(view_function):
+    """Require a signed-in user to access a private route."""
+
+    @wraps(view_function)
+    def wrapped_view(*args, **kwargs):
+        if not session.get("user_id"):
+            flash("Please sign in first.", "error")
+            return redirect(url_for("login"))
+
+        return view_function(*args, **kwargs)
+
+    return wrapped_view
 
 
 # --------------------------------------------------
@@ -71,12 +78,32 @@ def initialise_database():
         connection.execute("""
             CREATE TABLE IF NOT EXISTS ticker_views (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
                 name TEXT NOT NULL,
                 tickers TEXT NOT NULL,
                 hourly_reports INTEGER NOT NULL DEFAULT 0,
                 notifications INTEGER NOT NULL DEFAULT 0,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id)
             )
+        """)
+
+        # Upgrade existing databases without deleting saved data.
+        view_columns = {
+            row["name"]
+            for row in connection.execute(
+                "PRAGMA table_info(ticker_views)"
+            ).fetchall()
+        }
+
+        if "user_id" not in view_columns:
+            connection.execute(
+                "ALTER TABLE ticker_views ADD COLUMN user_id INTEGER"
+            )
+
+        connection.execute("""
+            CREATE INDEX IF NOT EXISTS idx_ticker_views_user_id
+            ON ticker_views(user_id)
         """)
 
         connection.execute("""
@@ -205,9 +232,7 @@ def initialise_database():
                     FROM push_subscriptions_old
                 """)
 
-                connection.execute(
-                    "DROP TABLE push_subscriptions_old"
-                )
+                connection.execute("DROP TABLE push_subscriptions_old")
 
 
 # --------------------------------------------------
@@ -364,14 +389,25 @@ def get_stock_results(symbols):
 # TICKER VIEW DATABASE HELPERS
 # --------------------------------------------------
 
-def get_all_views():
-    """Return saved views and remove views without tickers."""
+def get_all_views(user_id=None):
+    """Get ticker views for one user, or owned views for the scheduler."""
+
     with get_db_connection() as connection:
-        rows = connection.execute("""
-            SELECT *
-            FROM ticker_views
-            ORDER BY id DESC
-        """).fetchall()
+        if user_id is None:
+            # Legacy views without an owner are deliberately excluded.
+            rows = connection.execute("""
+                SELECT *
+                FROM ticker_views
+                WHERE user_id IS NOT NULL
+                ORDER BY id DESC
+            """).fetchall()
+        else:
+            rows = connection.execute("""
+                SELECT *
+                FROM ticker_views
+                WHERE user_id = ?
+                ORDER BY id DESC
+            """, (user_id,)).fetchall()
 
         views = []
         empty_view_ids = []
@@ -395,20 +431,40 @@ def get_all_views():
 
         if empty_view_ids:
             connection.executemany(
-                "DELETE FROM ticker_views WHERE id = ?",
-                [(view_id,) for view_id in empty_view_ids],
+                """
+                DELETE FROM ticker_views
+                WHERE id = ? AND user_id = ?
+                """,
+                [(view_id, user_id) for view_id in empty_view_ids]
+                if user_id is not None
+                else [
+                    (view_id, connection.execute(
+                        "SELECT user_id FROM ticker_views WHERE id = ?",
+                        (view_id,),
+                    ).fetchone()["user_id"])
+                    for view_id in empty_view_ids
+                ],
             )
 
     return views
 
 
-def get_view(view_id):
+def get_view(view_id, user_id=None):
+    """Fetch a view; website routes should always provide user_id."""
+
     with get_db_connection() as connection:
-        row = connection.execute("""
-            SELECT *
-            FROM ticker_views
-            WHERE id = ?
-        """, (view_id,)).fetchone()
+        if user_id is None:
+            row = connection.execute("""
+                SELECT *
+                FROM ticker_views
+                WHERE id = ? AND user_id IS NOT NULL
+            """, (view_id,)).fetchone()
+        else:
+            row = connection.execute("""
+                SELECT *
+                FROM ticker_views
+                WHERE id = ? AND user_id = ?
+            """, (view_id, user_id)).fetchone()
 
     if row is None:
         return None
@@ -447,9 +503,7 @@ def stock_lookup(symbol):
         }), 400
 
     except Exception:
-        app.logger.exception(
-            "Stock lookup failed for %s", symbol
-        )
+        app.logger.exception("Stock lookup failed for %s", symbol)
 
         return jsonify({
             "success": False,
@@ -464,7 +518,10 @@ def stock_lookup(symbol):
 @app.route("/")
 @app.route("/index.html")
 def index():
-    views = get_all_views()
+    if session.get("user_id"):
+        views = get_all_views(session["user_id"])
+    else:
+        views = []
 
     symbols = list(dict.fromkeys(
         symbol
@@ -486,10 +543,11 @@ def index():
 # --------------------------------------------------
 
 @app.route("/my_tables.html")
+@login_required
 def my_tables():
     return render_template(
         "my_tables.html",
-        views=get_all_views(),
+        views=get_all_views(session["user_id"]),
     )
 
 
@@ -498,6 +556,7 @@ def my_tables():
 # --------------------------------------------------
 
 @app.route("/create_ticker.html", methods=["GET", "POST"])
+@login_required
 def create_ticker():
     if request.method == "GET":
         return render_template(
@@ -549,14 +608,19 @@ def create_ticker():
 
         with get_db_connection() as connection:
             connection.execute("""
-                INSERT INTO ticker_views (name, tickers, hourly_reports)
-                VALUES (?, ?, ?)
-            """, (name, json.dumps(tickers), hourly_reports))
+                INSERT INTO ticker_views (
+                    user_id, name, tickers, hourly_reports
+                )
+                VALUES (?, ?, ?, ?)
+            """, (
+                session["user_id"],
+                name,
+                json.dumps(tickers),
+                hourly_reports,
+            ))
 
     except ValueError as error:
-        app.logger.warning(
-            "Ticker view validation failed: %s", error
-        )
+        app.logger.warning("Ticker view validation failed: %s", error)
 
         return render_template(
             "create_ticker.html",
@@ -585,6 +649,7 @@ def create_ticker():
 # --------------------------------------------------
 
 @app.route("/table.html")
+@login_required
 def view_table():
     view_id = request.args.get("id", type=int)
 
@@ -592,7 +657,7 @@ def view_table():
         flash("Please select a ticker view.", "error")
         return redirect(url_for("my_tables"))
 
-    view = get_view(view_id)
+    view = get_view(view_id, session["user_id"])
 
     if view is None:
         flash("That ticker view could not be found.", "error")
@@ -600,10 +665,10 @@ def view_table():
 
     if not view["tickers"]:
         with get_db_connection() as connection:
-            connection.execute(
-                "DELETE FROM ticker_views WHERE id = ?",
-                (view_id,),
-            )
+            connection.execute("""
+                DELETE FROM ticker_views
+                WHERE id = ? AND user_id = ?
+            """, (view_id, session["user_id"]))
 
         flash("That empty ticker view has been removed.", "error")
         return redirect(url_for("my_tables"))
@@ -623,8 +688,9 @@ def view_table():
 # --------------------------------------------------
 
 @app.route("/table/<int:view_id>/delete/<symbol>", methods=["POST"])
+@login_required
 def delete_ticker_from_view(view_id, symbol):
-    view = get_view(view_id)
+    view = get_view(view_id, session["user_id"])
 
     if view is None:
         flash("That ticker view could not be found.", "error")
@@ -641,14 +707,16 @@ def delete_ticker_from_view(view_id, symbol):
 
     with get_db_connection() as connection:
         if not tickers:
-            connection.execute(
-                "DELETE FROM ticker_views WHERE id = ?",
-                (view_id,),
-            )
+            connection.execute("""
+                DELETE FROM ticker_views
+                WHERE id = ? AND user_id = ?
+            """, (view_id, session["user_id"]))
+
             connection.execute(
                 "DELETE FROM push_subscriptions WHERE view_id = ?",
                 (view_id,),
             )
+
             flash(
                 f"{view['name']} was deleted because it had no tickers left.",
                 "success",
@@ -657,8 +725,12 @@ def delete_ticker_from_view(view_id, symbol):
             connection.execute("""
                 UPDATE ticker_views
                 SET tickers = ?
-                WHERE id = ?
-            """, (json.dumps(tickers), view_id))
+                WHERE id = ? AND user_id = ?
+            """, (
+                json.dumps(tickers),
+                view_id,
+                session["user_id"],
+            ))
 
             flash(
                 f"{symbol} was removed from {view['name']}.",
@@ -699,7 +771,6 @@ def stock_detail(symbol):
             ),
         )
 
-
 # --------------------------------------------------
 # LOGIN AND SIGNUP
 # --------------------------------------------------
@@ -715,14 +786,11 @@ def login():
             return render_template("login.html")
 
         with get_db_connection() as connection:
-            user = connection.execute(
-                """
+            user = connection.execute("""
                 SELECT id, username, email, password_hash
                 FROM users
                 WHERE email = ? COLLATE NOCASE
-                """,
-                (email,),
-            ).fetchone()
+            """, (email,)).fetchone()
 
         if (
             user is None
@@ -783,13 +851,11 @@ def signup():
 
         try:
             with get_db_connection() as connection:
-                cursor = connection.execute(
-                    """
+                cursor = connection.execute("""
                     INSERT INTO users (username, email, password_hash)
                     VALUES (?, ?, ?)
-                    """,
-                    (username, email, password_hash),
-                )
+                """, (username, email, password_hash))
+
                 user_id = cursor.lastrowid
 
         except sqlite3.IntegrityError:
@@ -800,6 +866,7 @@ def signup():
             )
             return render_template("signup.html")
 
+        # A new account gets no ticker views automatically.
         session.clear()
         session["user_id"] = user_id
         session["username"] = username
@@ -894,6 +961,9 @@ def vapid_public_key():
 
 @app.route("/api/push/subscribe", methods=["POST"])
 def subscribe_to_push():
+    if not session.get("user_id"):
+        return jsonify({"error": "Please sign in first."}), 401
+
     data = request.get_json(silent=True) or {}
     subscription = data.get("subscription")
     view_id = data.get("view_id")
@@ -913,7 +983,8 @@ def subscribe_to_push():
     except (TypeError, ValueError):
         return jsonify({"error": "Choose a valid ticker view."}), 400
 
-    view = get_view(view_id)
+    # The view must belong to the signed-in user.
+    view = get_view(view_id, session["user_id"])
 
     if view is None:
         return jsonify({"error": "Ticker view not found."}), 404
@@ -936,6 +1007,9 @@ def subscribe_to_push():
 
 @app.route("/api/push/test", methods=["POST"])
 def test_push():
+    if not session.get("user_id"):
+        return jsonify({"error": "Please sign in first."}), 401
+
     data = request.get_json(silent=True) or {}
 
     try:
@@ -943,7 +1017,7 @@ def test_push():
     except (TypeError, ValueError):
         return jsonify({"error": "Choose a valid ticker view."}), 400
 
-    view = get_view(view_id)
+    view = get_view(view_id, session["user_id"])
 
     if view is None:
         return jsonify({"error": "Ticker view not found."}), 404
@@ -969,7 +1043,7 @@ def test_push():
             subscription,
             "Finsight test notification",
             f"Notifications are working for {view['name']}.",
-            "/",
+            f"/table.html?id={view_id}",
         ):
             delivered += 1
 
@@ -994,9 +1068,10 @@ def test_push():
 # --------------------------------------------------
 
 def generate_hourly_reports():
-    """Generate reports and notify browsers subscribed to enabled views."""
+    """Generate reports and notify subscribers to each owned view."""
     app.logger.info("Starting scheduled Finsight hourly reports.")
 
+    # get_all_views() excludes old views without an account owner.
     views = get_all_views()
 
     for view in views:
