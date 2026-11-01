@@ -887,11 +887,16 @@ def signup():
     return render_template("signup.html")
 
 
+
 @app.route("/logout")
 def logout():
     session.clear()
-    flash("You have been signed out.", "success")
-    return redirect(url_for("index"))
+    response = redirect(url_for("login"))
+    response.delete_cookie(
+        app.config.get("SESSION_COOKIE_NAME", "session")
+    )
+    return response
+
 
 
 # --------------------------------------------------
