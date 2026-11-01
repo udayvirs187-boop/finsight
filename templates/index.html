@@ -24,7 +24,7 @@
   <main class="main">
     <section class="ticker-heading" id="ticker">
       <div>
-        <p class="eyebrow">YOUR TICKER VIEW</p>
+        <p class="eyebrow">YOUR TICKER</p>
         <h1 id="tickerTitle">Tech Watchlist</h1>
         <p class="subline">AAPL · MSFT · NVDA <span class="dot">•</span> Demo market data</p>
       </div>
@@ -89,13 +89,13 @@
         <article class="metric">
           <span class="metric-label">RSI (14)</span>
           <strong>64.2</strong>
-          <p>Momentum indicator</p>
+          <p>Positive momentum; not overbought</p>
         </article>
 
         <article class="metric">
           <span class="metric-label">MACD</span>
-          <strong>Positive</strong>
-          <p>Momentum signal</p>
+          <strong>Positive crossover</strong>
+          <p>Momentum signal strengthening</p>
         </article>
 
         <article class="metric">
@@ -107,13 +107,13 @@
         <article class="metric">
           <span class="metric-label">Relative volume</span>
           <strong>1.8×</strong>
-          <p>Compared with typical volume</p>
+          <p>Higher than typical at this time</p>
         </article>
 
         <article class="metric">
           <span class="metric-label">Risk flags</span>
-          <strong class="risk">Review volatility</strong>
-          <p>Watch for sudden price moves</p>
+          <strong class="risk">Elevated volatility</strong>
+          <p>Watch for sudden moves and fresh news</p>
         </article>
       </div>
 
@@ -121,8 +121,9 @@
         <div>
           <h3>Key development</h3>
           <p>
-            This area will show a concise summary of recent price movement,
-            volume and technical indicators when connected to market data.
+            Price is approaching a nearby resistance level. A move above it
+            with stronger volume may matter; a rejection could signal
+            weakening momentum.
           </p>
         </div>
 
@@ -167,7 +168,7 @@
       </div>
 
       <label for="symbolInput">Ticker symbol</label>
-      <input id="symbolInput" placeholder="e.g. AAPL" required>
+      <input id="symbolInput" placeholder="e.g. AAPL, RELIANCE.NS, VOD.L" required>
 
       <label for="companyInput">Company name <span>(optional)</span></label>
       <input id="companyInput" placeholder="e.g. Apple Inc.">
@@ -184,11 +185,30 @@
   <script>
     const $ = (id) => document.getElementById(id);
 
-    // Default ticker view: Tech Watchlist
+    // Original prototype's default ticker list, updated for Tech Watchlist.
+    // Prices are illustrative, not live market data.
     let tickers = [
-      {symbol: "AAPL", company: "Apple Inc.", exchange: "NASDAQ", price: "$100.00", change: "+1.24%"},
-      {symbol: "MSFT", company: "Microsoft Corporation", exchange: "NASDAQ", price: "$100.00", change: "+0.85%"},
-      {symbol: "NVDA", company: "NVIDIA Corporation", exchange: "NASDAQ", price: "$100.00", change: "+2.10%"}
+      {
+        symbol: "AAPL",
+        company: "Apple Inc.",
+        exchange: "NASDAQ",
+        price: "$100.00",
+        change: "+1.24%"
+      },
+      {
+        symbol: "MSFT",
+        company: "Microsoft Corporation",
+        exchange: "NASDAQ",
+        price: "$100.00",
+        change: "+0.85%"
+      },
+      {
+        symbol: "NVDA",
+        company: "NVIDIA Corporation",
+        exchange: "NASDAQ",
+        price: "$100.00",
+        change: "+2.10%"
+      }
     ];
 
     let mode = "create";
@@ -216,14 +236,16 @@
       if (mode === "list") {
         renderList();
         $("tickerListSection").classList.remove("hidden");
-        $("tickerListSection").scrollIntoView({behavior: "smooth"});
+        $("tickerListSection").scrollIntoView({ behavior: "smooth" });
         return;
       }
 
       $("tickerForm").reset();
       $("message").textContent = "";
+
       $("dialogTitle").textContent =
         mode === "view" ? "View a ticker" : "Create a ticker";
+
       $("submitTicker").textContent =
         mode === "view" ? "View ticker" : "Create ticker";
 
@@ -253,7 +275,12 @@
         action.textContent = "View →";
 
         row.append(details, price, action);
-        row.addEventListener("click", () => selectTicker(ticker));
+
+        row.addEventListener("click", () => {
+          selectTicker(ticker);
+          $("tickerListSection").classList.add("hidden");
+        });
+
         $("tickerList").appendChild(row);
       });
     }
@@ -261,10 +288,13 @@
     function selectTicker(ticker) {
       $("tickerTitle").textContent =
         ticker.symbol + " · " + ticker.company;
+
       $("price").textContent = ticker.price;
       $("change").textContent = ticker.change;
-      $("tickerListSection").classList.add("hidden");
-      $("ticker").scrollIntoView({behavior: "smooth"});
+      $("support").textContent = "—";
+      $("resistance").textContent = "—";
+
+      $("ticker").scrollIntoView({ behavior: "smooth" });
     }
 
     $("tickerForm").addEventListener("submit", (event) => {
@@ -272,12 +302,13 @@
 
       const symbol = $("symbolInput").value.trim().toUpperCase();
       const company = $("companyInput").value.trim() || symbol;
+
       const found = tickers.find((ticker) => ticker.symbol === symbol);
 
       if (mode === "view") {
         if (!found) {
           $("message").textContent =
-            "That ticker is not in your list. Create it first.";
+            "That ticker is not in your list yet. Choose Create a ticker first.";
           return;
         }
 
@@ -294,7 +325,8 @@
       const ticker = {
         symbol,
         company,
-        exchange: "NASDAQ",
+        exchange: symbol.endsWith(".NS") ? "NSE" :
+                  symbol.endsWith(".L") ? "LSE" : "US market",
         price: "—",
         change: "Awaiting data"
       };
@@ -306,7 +338,10 @@
 
     $("closeDialog").addEventListener("click", () => $("tickerDialog").close());
     $("cancelDialog").addEventListener("click", () => $("tickerDialog").close());
-    $("closeList").addEventListener("click", () => $("tickerListSection").classList.add("hidden"));
+
+    $("closeList").addEventListener("click", () => {
+      $("tickerListSection").classList.add("hidden");
+    });
 
     $("signUp").addEventListener("click", () => {
       window.location.href = "{{ url_for('signup') }}";
