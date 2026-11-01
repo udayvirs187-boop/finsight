@@ -1,355 +1,652 @@
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Finsight</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-  <header class="topbar">
-    <a class="logo" href="/">Finsight<span class="logo-mark">◆</span></a>
-    <nav class="top-links">
-      <a href="#report">Hourly report</a>
-      <a href="#ticker">My ticker</a>
-    </nav>
-    <button class="profile" aria-label="Profile">U</button>
-  </header>
+    <link rel="icon" type="image/png"
+      href="{{ url_for('static', filename='finsight-logo.png') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <section class="quote-bar">
-    <p>“See beyond the numbers.”</p>
-  </section>
+    <title>Finsight | See Beyond Numbers</title>
 
-  <main class="main">
-    <section class="ticker-heading" id="ticker">
-      <div>
-        <p class="eyebrow">YOUR TICKER</p>
-        <h1 id="tickerTitle">Tech Watchlist</h1>
-        <p class="subline">AAPL · MSFT · NVDA <span class="dot">•</span> Demo market data</p>
-      </div>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
 
-      <div class="dropdown">
-        <button id="addTicker" class="add-button" aria-expanded="false">
-          ＋ Add ticker <span>⌄</span>
-        </button>
-        <div id="tickerMenu" class="menu hidden">
-          <button data-mode="create">Create a ticker</button>
-          <button data-mode="view">View a ticker</button>
-          <button data-mode="list">See your ticker list</button>
-        </div>
-      </div>
-    </section>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
 
-    <section class="price-row">
-      <div>
-        <p class="label">Latest price <span class="demo-label">ILLUSTRATIVE</span></p>
-        <div class="price-line">
-          <strong id="price">$100.00</strong>
-          <span id="change" class="change up">+1.24%</span>
-        </div>
-        <p class="subline">Illustrative price movement</p>
-      </div>
-
-      <div class="chart-wrap">
-        <p class="label">Intraday price movement</p>
-        <svg class="chart" viewBox="0 0 600 150" preserveAspectRatio="none" role="img" aria-label="Illustrative stock price chart">
-          <defs>
-            <linearGradient id="fill" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stop-color="#7d8b55" stop-opacity=".25"/>
-              <stop offset="100%" stop-color="#7d8b55" stop-opacity="0"/>
-            </linearGradient>
-          </defs>
-          <path class="chart-fill" d="M0,126 L38,113 L73,119 L109,90 L145,99 L183,75 L221,84 L259,57 L298,69 L334,43 L370,50 L410,30 L450,42 L490,21 L530,31 L566,13 L600,17 L600,150 L0,150 Z"/>
-          <path class="chart-stroke" d="M0,126 L38,113 L73,119 L109,90 L145,99 L183,75 L221,84 L259,57 L298,69 L334,43 L370,50 L410,30 L450,42 L490,21 L530,31 L566,13 L600,17"/>
-        </svg>
-        <div class="chart-axis">
-          <span>Market open</span>
-          <span>Now</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="report" id="report">
-      <div class="report-heading">
-        <div>
-          <p class="eyebrow">LATEST SNAPSHOT</p>
-          <h2>Hourly report</h2>
-        </div>
-        <span class="timestamp">Illustrative values</span>
-      </div>
-
-      <div class="report-grid">
-        <article class="metric">
-          <span class="metric-label">Price change · 1h</span>
-          <strong class="up">+1.24%</strong>
-          <p>Short-term price movement</p>
-        </article>
-
-        <article class="metric">
-          <span class="metric-label">RSI (14)</span>
-          <strong>64.2</strong>
-          <p>Positive momentum; not overbought</p>
-        </article>
-
-        <article class="metric">
-          <span class="metric-label">MACD</span>
-          <strong>Positive crossover</strong>
-          <p>Momentum signal strengthening</p>
-        </article>
-
-        <article class="metric">
-          <span class="metric-label">Price vs VWAP</span>
-          <strong>Above</strong>
-          <p>Price above session average</p>
-        </article>
-
-        <article class="metric">
-          <span class="metric-label">Relative volume</span>
-          <strong>1.8×</strong>
-          <p>Higher than typical at this time</p>
-        </article>
-
-        <article class="metric">
-          <span class="metric-label">Risk flags</span>
-          <strong class="risk">Elevated volatility</strong>
-          <p>Watch for sudden moves and fresh news</p>
-        </article>
-      </div>
-
-      <div class="report-notes">
-        <div>
-          <h3>Key development</h3>
-          <p>
-            Price is approaching a nearby resistance level. A move above it
-            with stronger volume may matter; a rejection could signal
-            weakening momentum.
-          </p>
-        </div>
-
-        <div class="levels">
-          <p><span>Nearest support</span><strong id="support">$97.50</strong></p>
-          <p><span>Nearest resistance</span><strong id="resistance">$102.00</strong></p>
-        </div>
-      </div>
-
-      <p class="disclaimer">
-        Illustrative values only — this page is not connected to live market
-        data and does not provide investment advice.
-      </p>
-    </section>
-
-    <section id="tickerListSection" class="ticker-list-section hidden">
-      <div class="report-heading">
-        <h2>Your tickers</h2>
-        <button id="closeList" class="plain-button">Close ×</button>
-      </div>
-      <div id="tickerList"></div>
-    </section>
-  </main>
-
-  <footer class="bottom-bar">
-    <span>Finsight <b>◆</b></span>
-    <span class="footer-quote">See beyond the numbers.</span>
-    <div>
-      <button id="signUp">Sign up</button>
-      <button id="logIn">Log in</button>
-    </div>
-  </footer>
-
-  <dialog id="tickerDialog">
-    <form id="tickerForm">
-      <div class="dialog-top">
-        <div>
-          <p class="eyebrow">MY TICKERS</p>
-          <h2 id="dialogTitle">Create a ticker</h2>
-        </div>
-        <button type="button" id="closeDialog" class="plain-button">×</button>
-      </div>
-
-      <label for="symbolInput">Ticker symbol</label>
-      <input id="symbolInput" placeholder="e.g. AAPL, RELIANCE.NS, VOD.L" required>
-
-      <label for="companyInput">Company name <span>(optional)</span></label>
-      <input id="companyInput" placeholder="e.g. Apple Inc.">
-
-      <p id="message" class="message"></p>
-
-      <div class="dialog-actions">
-        <button type="button" id="cancelDialog" class="cancel-button">Cancel</button>
-        <button id="submitTicker" class="add-button" type="submit">Create ticker</button>
-      </div>
-    </form>
-  </dialog>
-
-  <script>
-    const $ = (id) => document.getElementById(id);
-
-    // Original prototype's default ticker list, updated for Tech Watchlist.
-    // Prices are illustrative, not live market data.
-    let tickers = [
-      {
-        symbol: "AAPL",
-        company: "Apple Inc.",
-        exchange: "NASDAQ",
-        price: "$100.00",
-        change: "+1.24%"
-      },
-      {
-        symbol: "MSFT",
-        company: "Microsoft Corporation",
-        exchange: "NASDAQ",
-        price: "$100.00",
-        change: "+0.85%"
-      },
-      {
-        symbol: "NVDA",
-        company: "NVIDIA Corporation",
-        exchange: "NASDAQ",
-        price: "$100.00",
-        change: "+2.10%"
-      }
-    ];
-
-    let mode = "create";
-
-    $("addTicker").addEventListener("click", () => {
-      const open = !$("tickerMenu").classList.contains("hidden");
-      $("tickerMenu").classList.toggle("hidden", open);
-      $("addTicker").setAttribute("aria-expanded", String(!open));
-    });
-
-    document.addEventListener("click", (event) => {
-      if (!event.target.closest(".dropdown")) {
-        $("tickerMenu").classList.add("hidden");
-        $("addTicker").setAttribute("aria-expanded", "false");
-      }
-    });
-
-    $("tickerMenu").addEventListener("click", (event) => {
-      const button = event.target.closest("[data-mode]");
-      if (!button) return;
-
-      mode = button.dataset.mode;
-      $("tickerMenu").classList.add("hidden");
-
-      if (mode === "list") {
-        renderList();
-        $("tickerListSection").classList.remove("hidden");
-        $("tickerListSection").scrollIntoView({ behavior: "smooth" });
-        return;
-      }
-
-      $("tickerForm").reset();
-      $("message").textContent = "";
-
-      $("dialogTitle").textContent =
-        mode === "view" ? "View a ticker" : "Create a ticker";
-
-      $("submitTicker").textContent =
-        mode === "view" ? "View ticker" : "Create ticker";
-
-      $("tickerDialog").showModal();
-    });
-
-    function renderList() {
-      $("tickerList").replaceChildren();
-
-      tickers.forEach((ticker) => {
-        const row = document.createElement("button");
-        row.className = "ticker-list-row";
-
-        const details = document.createElement("span");
-        const symbol = document.createElement("b");
-        const company = document.createElement("small");
-
-        symbol.textContent = ticker.symbol;
-        company.textContent = ticker.company;
-        details.append(symbol, company);
-
-        const price = document.createElement("span");
-        price.className = "row-price";
-        price.textContent = ticker.price;
-
-        const action = document.createElement("span");
-        action.textContent = "View →";
-
-        row.append(details, price, action);
-
-        row.addEventListener("click", () => {
-          selectTicker(ticker);
-          $("tickerListSection").classList.add("hidden");
-        });
-
-        $("tickerList").appendChild(row);
-      });
-    }
-
-    function selectTicker(ticker) {
-      $("tickerTitle").textContent =
-        ticker.symbol + " · " + ticker.company;
-
-      $("price").textContent = ticker.price;
-      $("change").textContent = ticker.change;
-      $("support").textContent = "—";
-      $("resistance").textContent = "—";
-
-      $("ticker").scrollIntoView({ behavior: "smooth" });
-    }
-
-    $("tickerForm").addEventListener("submit", (event) => {
-      event.preventDefault();
-
-      const symbol = $("symbolInput").value.trim().toUpperCase();
-      const company = $("companyInput").value.trim() || symbol;
-
-      const found = tickers.find((ticker) => ticker.symbol === symbol);
-
-      if (mode === "view") {
-        if (!found) {
-          $("message").textContent =
-            "That ticker is not in your list yet. Choose Create a ticker first.";
-          return;
+    <style>
+        :root {
+            --olive: #343d29;
+            --sage: #a5ad91;
+            --cream: #f5f2e8;
+            --gold: #d4bd79;
+            --black: #171914;
+            --white: #fffdf6;
+            --muted: #77796d;
+            --border: #dedbce;
         }
 
-        $("tickerDialog").close();
-        selectTicker(found);
-        return;
-      }
+        * {
+            box-sizing: border-box;
+        }
 
-      if (found) {
-        $("message").textContent = "That ticker is already in your list.";
-        return;
-      }
+        html, body {
+            margin: 0;
+            min-height: 100%;
+            width: 100%;
+        }
 
-      const ticker = {
-        symbol,
-        company,
-        exchange: symbol.endsWith(".NS") ? "NSE" :
-                  symbol.endsWith(".L") ? "LSE" : "US market",
-        price: "—",
-        change: "Awaiting data"
-      };
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--cream);
+            color: var(--black);
+            font-family: "DM Sans", sans-serif;
+        }
 
-      tickers.push(ticker);
-      $("tickerDialog").close();
-      selectTicker(ticker);
-    });
+        a {
+            text-decoration: none;
+        }
 
-    $("closeDialog").addEventListener("click", () => $("tickerDialog").close());
-    $("cancelDialog").addEventListener("click", () => $("tickerDialog").close());
+        /* TOP BAR */
 
-    $("closeList").addEventListener("click", () => {
-      $("tickerListSection").classList.add("hidden");
-    });
+        .topbar {
+            min-height: 78px;
+            width: 100%;
+            padding: 12px 3%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            background: var(--olive);
+            color: var(--gold);
+        }
 
-    $("signUp").addEventListener("click", () => {
-      window.location.href = "{{ url_for('signup') }}";
-    });
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
 
-    $("logIn").addEventListener("click", () => {
-      window.location.href = "{{ url_for('login') }}";
-    });
-  </script>
+        .quote {
+            color: var(--gold);
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: 14px;
+            letter-spacing: 1.2px;
+        }
+
+        .logo-link {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            margin-left: auto;
+        }
+
+        .header-logo {
+            display: block;
+            width: 160px;
+            max-height: 54px;
+            object-fit: contain;
+            object-position: right center;
+        }
+
+        /* ADD TICKER DROPDOWN */
+
+        .dropdown-wrap {
+            position: relative;
+        }
+
+        .add-button {
+            padding: 11px 16px;
+            border: 1px solid var(--gold);
+            border-radius: 7px;
+            background: var(--gold);
+            color: var(--olive);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .add-button:hover {
+            background: #e4d29c;
+        }
+
+        .dropdown {
+            position: absolute;
+            z-index: 100;
+            top: calc(100% + 9px);
+            left: 0;
+            min-width: 220px;
+            padding: 7px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            box-shadow: 0 10px 28px #00000018;
+        }
+
+        .dropdown a {
+            display: block;
+            padding: 12px;
+            border-radius: 5px;
+            color: var(--olive);
+            font-size: 13px;
+        }
+
+        .dropdown a:hover {
+            background: #eeeddf;
+        }
+
+        /* MAIN CONTENT */
+
+        .dashboard {
+            flex: 1;
+            width: 100%;
+            max-width: none;
+            padding: 32px 3%;
+        }
+
+        .welcome {
+            margin-bottom: 28px;
+        }
+
+        .eyebrow {
+            color: #777c64;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 9px;
+        }
+
+        h1, h2, h3 {
+            font-family: "Playfair Display", Georgia, serif;
+            color: var(--olive);
+        }
+
+        .welcome h1 {
+            margin: 0 0 10px;
+            font-size: clamp(30px, 4vw, 44px);
+            font-weight: 600;
+        }
+
+        .welcome p {
+            margin: 0;
+            max-width: 650px;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin: 30px 0 16px;
+        }
+
+        .section-heading h2 {
+            margin: 0;
+            font-size: 23px;
+        }
+
+        .card {
+            width: 100%;
+            margin-bottom: 20px;
+            padding: 24px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .empty-state {
+            padding: 38px 20px;
+            text-align: center;
+        }
+
+        .empty-state h2 {
+            margin-top: 0;
+        }
+
+        .empty-state p {
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .primary-link {
+            display: inline-block;
+            padding: 11px 16px;
+            border: 1px solid var(--olive);
+            border-radius: 7px;
+            background: var(--olive);
+            color: var(--gold);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .chip {
+            display: inline-block;
+            padding: 8px 11px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--olive);
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* STOCK REPORTS */
+
+        .stock-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .stock-heading h2 {
+            margin: 0;
+            font-size: 23px;
+        }
+
+        .price-summary {
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin: 22px 0;
+        }
+
+        .price-summary strong {
+            color: var(--olive);
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: 30px;
+        }
+
+        .price-summary span {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .up {
+            color: #47734c !important;
+        }
+
+        .down {
+            color: #a54f43 !important;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 13px;
+            margin-top: 18px;
+        }
+
+        .metric {
+            min-width: 0;
+            padding: 18px;
+            background: var(--cream);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+        }
+
+        .metric span {
+            display: block;
+            margin-bottom: 12px;
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .metric strong {
+            display: block;
+            color: var(--olive);
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: 24px;
+            overflow-wrap: anywhere;
+        }
+
+        .metric p {
+            margin: 9px 0 0;
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .updated {
+            margin: 16px 0 0;
+            color: var(--muted);
+            font-size: 11px;
+            overflow-wrap: anywhere;
+        }
+
+        .error-message {
+            color: #a54f43;
+            font-size: 13px;
+        }
+
+        /* SAVED VIEWS */
+
+        .view-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 17px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .view-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .view-row strong {
+            color: var(--olive);
+            font-size: 14px;
+        }
+
+        .view-row p {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        /* BOTTOM BAR */
+
+        .bottom-bar {
+            width: 100%;
+            margin-top: auto;
+            padding: 19px 3%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            background: var(--black);
+            color: var(--gold);
+            font-size: 11px;
+        }
+
+        .bottom-bar a {
+            color: var(--gold);
+        }
+
+        /* RESPONSIVE LAYOUT */
+
+        @media (max-width: 900px) {
+            .metric-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .topbar {
+                min-height: 68px;
+                padding: 10px 4%;
+            }
+
+            .header-left {
+                gap: 10px;
+            }
+
+            .quote {
+                display: none;
+            }
+
+            .header-logo {
+                width: 115px;
+                max-height: 45px;
+            }
+
+            .dashboard {
+                padding: 24px 4%;
+            }
+
+            .card {
+                padding: 17px;
+            }
+
+            .metric-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 9px;
+            }
+
+            .metric {
+                padding: 13px;
+            }
+
+            .metric strong {
+                font-size: 20px;
+            }
+
+            .bottom-bar {
+                padding: 17px 4%;
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topbar">
+    <div class="header-left">
+        <div class="dropdown-wrap">
+            <button
+                class="add-button"
+                id="menuButton"
+                type="button"
+                aria-expanded="false"
+                aria-controls="tickerMenu">
+                + Add ticker ▾
+            </button>
+
+            <div class="dropdown" id="tickerMenu" hidden>
+                <a href="{{ url_for('create_ticker') }}">
+                    + Create ticker view
+                </a>
+                <a href="{{ url_for('my_tables') }}">
+                    View ticker views
+                </a>
+            </div>
+        </div>
+
+        <span class="quote">SEE BEYOND NUMBERS.</span>
+    </div>
+
+    <a href="{{ url_for('index') }}" class="logo-link">
+        <img
+            src="{{ url_for('static', filename='finsight-logo.png') }}"
+            alt="Finsight"
+            class="header-logo">
+    </a>
+</header>
+
+<main class="dashboard">
+
+    <section class="welcome">
+        <div class="eyebrow">YOUR MARKET RESEARCH WORKSPACE</div>
+        <h1>See beyond the numbers.</h1>
+        <p>
+            Your selected stocks, calculated indicators and market insights,
+            all in one place.
+        </p>
+    </section>
+
+    <div class="section-heading">
+        <h2>Your market overview</h2>
+        <a href="{{ url_for('create_ticker') }}" class="primary-link">
+            + Create ticker view
+        </a>
+    </div>
+
+    {% if stocks %}
+        {% for result in stocks %}
+            <section class="card">
+                <div class="stock-heading">
+                    <div>
+                        <div class="eyebrow">{{ result.symbol }}</div>
+                        <h2>{{ result.symbol }} market report</h2>
+                    </div>
+
+                    <a class="chip"
+                       href="{{ url_for('stock_detail', symbol=result.symbol) }}">
+                        Full details →
+                    </a>
+                </div>
+
+                {% if result.data %}
+                    {% set stock = result.data %}
+
+                    <div class="price-summary">
+                        <strong>
+                            {{ stock.currency }} {{ "%.2f"|format(stock.price) }}
+                        </strong>
+
+                        <span class="{{ 'up' if stock.price_change >= 0 else 'down' }}">
+                            {{ '+' if stock.price_change >= 0 else '' }}{{ "%.2f"|format(stock.price_change) }}
+                            ({{ '+' if stock.price_change_percent >= 0 else '' }}{{ "%.2f"|format(stock.price_change_percent) }}%)
+                        </span>
+                    </div>
+
+                    <div class="metric-grid">
+                        <article class="metric">
+                            <span>RSI · 14 periods</span>
+                            <strong>
+                                {{ "%.2f"|format(stock.rsi) if stock.rsi is not none else "N/A" }}
+                            </strong>
+                            <p>
+                                {% if stock.rsi is not none and stock.rsi >= 70 %}
+                                    Higher RSI range
+                                {% elif stock.rsi is not none and stock.rsi <= 30 %}
+                                    Lower RSI range
+                                {% else %}
+                                    Relative Strength Index
+                                {% endif %}
+                            </p>
+                        </article>
+
+                        <article class="metric">
+                            <span>MACD</span>
+                            <strong>
+                                {{ "%.3f"|format(stock.macd) if stock.macd is not none else "N/A" }}
+                            </strong>
+                            <p>
+                                Signal:
+                                {{ "%.3f"|format(stock.macd_signal) if stock.macd_signal is not none else "N/A" }}
+                            </p>
+                        </article>
+
+                        <article class="metric">
+                            <span>Hourly price change</span>
+                            <strong class="{{ 'up' if stock.price_change >= 0 else 'down' }}">
+                                {{ '+' if stock.price_change_percent >= 0 else '' }}{{ "%.2f"|format(stock.price_change_percent) }}%
+                            </strong>
+                            <p>Change between the latest two hourly candles</p>
+                        </article>
+
+                        <article class="metric">
+                            <span>Relative volume</span>
+                            <strong>
+                                {{ "%.2f"|format(stock.relative_volume) ~ "×" if stock.relative_volume is not none else "N/A" }}
+                            </strong>
+                            <p>Latest hourly volume compared with the previous 20 hourly candles</p>
+                        </article>
+                    </div>
+
+                    <p class="updated">
+                        Market data timestamp: {{ stock.last_updated }}
+                    </p>
+
+                {% else %}
+                    <p class="error-message">
+                        Unable to calculate indicators for {{ result.symbol }}:
+                        {{ result.error }}
+                    </p>
+                {% endif %}
+            </section>
+        {% endfor %}
+
+    {% else %}
+        <section class="card empty-state">
+            <h2>Your dashboard is ready</h2>
+            <p>
+                Create a ticker view and select your stocks.
+                Finsight will calculate the indicators for each selected stock.
+            </p>
+            <a href="{{ url_for('create_ticker') }}" class="primary-link">
+                + Create your first ticker view
+            </a>
+        </section>
+    {% endif %}
+
+    <div class="section-heading">
+        <h2>Saved ticker views</h2>
+        <a href="{{ url_for('my_tables') }}" class="chip">View all →</a>
+    </div>
+
+    <section class="card">
+        {% if views %}
+            {% for view in views %}
+                <div class="view-row">
+                    <div>
+                        <strong>{{ view.name }}</strong>
+                        <p>{{ view.tickers | join(', ') }}</p>
+                    </div>
+
+                    <a class="chip"
+                       href="{{ url_for('view_table', id=view.id) }}"
+                        Open view →
+                    </a>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:var(--muted);font-size:13px;">
+                No saved views yet. Use “Create ticker view” to get started.
+            </p>
+        {% endif %}
+    </section>
+
+    <p style="color:var(--muted);font-size:11px;line-height:1.7;">
+        Market data may be delayed or incomplete. Technical indicators are
+        research tools, not guarantees of future performance or financial advice.
+    </p>
+
+</main>
+
+<footer class="bottom-bar">
+    <span>© 2026 Finsight · See beyond numbers.</span>
+
+    <div style="display:flex;gap:18px;">
+        <a href="{{ url_for('login') }}">Log in</a>
+        <a href="{{ url_for('signup') }}">Sign up</a>
+    </div>
+</footer>
+
+<script>
+const menuButton = document.getElementById("menuButton");
+const tickerMenu = document.getElementById("tickerMenu");
+
+menuButton.addEventListener("click", function (event) {
+    event.stopPropagation();
+
+    const willOpen = tickerMenu.hidden;
+    tickerMenu.hidden = !willOpen;
+    menuButton.setAttribute("aria-expanded", String(willOpen));
+});
+
+document.addEventListener("click", function (event) {
+    if (!event.target.closest(".dropdown-wrap")) {
+        tickerMenu.hidden = true;
+        menuButton.setAttribute("aria-expanded", "false");
+    }
+});
+</script>
+
 </body>
 </html>
