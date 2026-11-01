@@ -1,18 +1,18 @@
 
 "use strict";
 
-// --------------------------------------------------
+// ==================================================
 // FINSIGHT PUSH NOTIFICATIONS
-// --------------------------------------------------
+// ==================================================
 
 const FINSIGHT_SW_URL = "/service-worker.js";
 const FINSIGHT_PUBLIC_KEY_URL = "/api/vapid-public-key";
 const FINSIGHT_SUBSCRIBE_URL = "/api/push/subscribe";
 const FINSIGHT_TEST_URL = "/api/push/test";
 
-// --------------------------------------------------
+// ==================================================
 // HELPERS
-// --------------------------------------------------
+// ==================================================
 
 function getViewId(providedViewId) {
     if (providedViewId !== undefined && providedViewId !== null) {
@@ -28,13 +28,14 @@ function getViewId(providedViewId) {
     }
 
     const element = document.querySelector("[data-view-id]");
+
     if (element) {
         const id = Number(element.dataset.viewId);
         if (Number.isInteger(id) && id > 0) return id;
     }
 
     throw new Error(
-        "Could not find the ticker view ID. Open a saved ticker view first."
+        "Ticker view ID not found. Open a saved ticker view first."
     );
 }
 
@@ -45,19 +46,21 @@ async function fetchJSON(url, options = {}) {
     });
 
     const text = await response.text();
-    let data = {};
+    let data;
 
     try {
         data = text ? JSON.parse(text) : {};
     } catch {
         throw new Error(
-            `The server returned an invalid response (${response.status}).`
+            `Invalid server response (${response.status}).`
         );
     }
 
     if (!response.ok) {
         throw new Error(
-            data.error || data.message || `Request failed (${response.status}).`
+            data.error ||
+            data.message ||
+            `Request failed (${response.status}).`
         );
     }
 
@@ -65,7 +68,9 @@ async function fetchJSON(url, options = {}) {
 }
 
 function urlBase64ToUint8Array(base64String) {
-    const padding = "=".repeat((4 - base64String.length % 4) % 4);
+    const padding = "=".repeat(
+        (4 - base64String.length % 4) % 4
+    );
 
     const base64 = (base64String + padding)
         .replace(/-/g, "+")
@@ -73,18 +78,23 @@ function urlBase64ToUint8Array(base64String) {
 
     const rawData = window.atob(base64);
 
-    return Uint8Array.from(rawData, character =>
-        character.charCodeAt(0)
+    return Uint8Array.from(
+        rawData,
+        character => character.charCodeAt(0)
     );
 }
 
 async function getServiceWorker() {
     if (!("serviceWorker" in navigator)) {
-        throw new Error("This browser does not support service workers.");
+        throw new Error(
+            "This browser does not support service workers."
+        );
     }
 
     if (!("PushManager" in window)) {
-        throw new Error("This browser does not support push notifications.");
+        throw new Error(
+            "This browser does not support push notifications."
+        );
     }
 
     const registration = await navigator.serviceWorker.register(
@@ -98,15 +108,26 @@ async function getPublicVapidKey() {
     const data = await fetchJSON(FINSIGHT_PUBLIC_KEY_URL);
 
     if (!data.publicKey) {
-        throw new Error("The server did not provide a public VAPID key.");
+        throw new Error(
+            "The server did not provide a public VAPID key."
+        );
     }
 
     return data.publicKey.trim();
 }
 
-// --------------------------------------------------
+function showError(action, error) {
+    console.error(`Finsight ${action} failed:`, error);
+
+    alert(
+        `${action} failed: ` +
+        (error.message || "An unexpected error occurred.")
+    );
+}
+
+// ==================================================
 // ENABLE NOTIFICATIONS
-// --------------------------------------------------
+// ==================================================
 
 async function enableNotifications(providedViewId) {
     try {
@@ -122,21 +143,23 @@ async function enableNotifications(providedViewId) {
 
         if (permission !== "granted") {
             throw new Error(
-                "Notification permission was not granted. Check your browser settings."
+                "Notification permission was not granted. " +
+                "Check your browser site settings."
             );
         }
 
         const registration = await getServiceWorker();
         const publicKey = await getPublicVapidKey();
-        const applicationServerKey = urlBase64ToUint8Array(publicKey);
+        const applicationServerKey =
+            urlBase64ToUint8Array(publicKey);
 
-        // Remove the existing browser subscription if it was created
-        // with the old applicationServerKey.
         let subscription =
             await registration.pushManager.getSubscription();
 
+        // Remove an existing subscription if it uses another key.
         if (subscription) {
-            const existingKey = subscription.options.applicationServerKey;
+            const existingKey =
+                subscription.options.applicationServerKey;
 
             let sameKey = false;
 
@@ -146,7 +169,8 @@ async function enableNotifications(providedViewId) {
                 sameKey =
                     oldBytes.length === applicationServerKey.length &&
                     oldBytes.every(
-                        (byte, index) => byte === applicationServerKey[index]
+                        (byte, index) =>
+                            byte === applicationServerKey[index]
                     );
             }
 
@@ -156,25 +180,27 @@ async function enableNotifications(providedViewId) {
             }
         }
 
-        // Create a subscription using the currently deployed public key.
         if (!subscription) {
-            subscription = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey
-            });
+            subscription =
+                await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey
+                });
         }
 
-        // Store the new subscription on the server.
-        const result = await fetchJSON(FINSIGHT_SUBSCRIBE_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                view_id: viewId,
-                subscription: subscription.toJSON()
-            })
-        });
+        const result = await fetchJSON(
+            FINSIGHT_SUBSCRIBE_URL,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    view_id: viewId,
+                    subscription: subscription.toJSON()
+                })
+            }
+        );
 
         console.log("Finsight subscription saved:", result);
 
@@ -186,57 +212,55 @@ async function enableNotifications(providedViewId) {
         return true;
 
     } catch (error) {
-        console.error("Enable notifications failed:", error);
-
-        alert("Could not enable notifications: " + error.message);
-
+        showError("Enable notifications", error);
         return false;
     }
 }
 
-// --------------------------------------------------
+// ==================================================
 // SEND TEST NOTIFICATION
-// --------------------------------------------------
+// ==================================================
 
 async function sendTestNotification(providedViewId) {
     try {
         const viewId = getViewId(providedViewId);
 
-        const result = await fetchJSON(FINSIGHT_TEST_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                view_id: viewId
-            })
-        });
+        const result = await fetchJSON(
+            FINSIGHT_TEST_URL,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    view_id: viewId
+                })
+            }
+        );
 
-        console.log("Test notification result:", result);
+        console.log("Finsight test notification result:", result);
 
         alert(
             result.message ||
-            "The test notification was accepted by the push service."
+            "The test notification request was accepted."
         );
 
         return true;
 
     } catch (error) {
-        console.error("Test notification failed:", error);
-
-        alert("Could not send test notification: " + error.message);
-
+        showError("Test notification", error);
         return false;
     }
 }
 
-// --------------------------------------------------
-// OPTIONAL: UNSUBSCRIBE FROM NOTIFICATIONS
-// --------------------------------------------------
+// ==================================================
+// DISABLE NOTIFICATIONS
+// ==================================================
 
 async function disableNotifications() {
     try {
         const registration = await getServiceWorker();
+
         const subscription =
             await registration.pushManager.getSubscription();
 
@@ -249,21 +273,97 @@ async function disableNotifications() {
 
         alert(
             "Browser notifications have been disabled. " +
-            "The old server-side subscription may still exist."
+            "The server-side subscription may still exist."
         );
 
         return true;
 
     } catch (error) {
-        console.error("Disable notifications failed:", error);
-
-        alert("Could not disable notifications: " + error.message);
-
+        showError("Disable notifications", error);
         return false;
     }
 }
 
-// Keep these functions accessible to existing HTML onclick handlers.
+// ==================================================
+// BUTTON WIRING
+// ==================================================
+
+function bindNotificationButton(selectors, action) {
+    const elements = document.querySelectorAll(selectors);
+
+    elements.forEach(button => {
+        if (button.dataset.finsightNotificationBound === "true") {
+            return;
+        }
+
+        button.dataset.finsightNotificationBound = "true";
+
+        button.addEventListener("click", async event => {
+            event.preventDefault();
+
+            if (button.disabled) return;
+
+            button.disabled = true;
+
+            try {
+                const viewId =
+                    button.dataset.viewId ||
+                    document.querySelector("[data-view-id]")
+                        ?.dataset.viewId;
+
+                await action(viewId);
+            } finally {
+                button.disabled = false;
+            }
+        });
+    });
+}
+
+function initialiseNotificationButtons() {
+    bindNotificationButton(
+        [
+            "#enable-notifications",
+            "#enableNotifications",
+            "#enableNotificationsBtn",
+            "#enable-notifications-btn",
+            "[data-action='enable-notifications']"
+        ].join(","),
+        enableNotifications
+    );
+
+    bindNotificationButton(
+        [
+            "#test-notification",
+            "#testNotification",
+            "#testNotificationBtn",
+            "#test-notification-btn",
+            "[data-action='test-notification']"
+        ].join(","),
+        sendTestNotification
+    );
+
+    bindNotificationButton(
+        [
+            "#disable-notifications",
+            "#disableNotifications",
+            "[data-action='disable-notifications']"
+        ].join(","),
+        disableNotifications
+    );
+
+    console.log("Finsight notification button setup complete.");
+}
+
+// Keep compatibility with existing HTML onclick handlers.
 window.enableNotifications = enableNotifications;
 window.sendTestNotification = sendTestNotification;
 window.disableNotifications = disableNotifications;
+
+if (document.readyState === "loading") {
+    document.addEventListener(
+        "DOMContentLoaded",
+        initialiseNotificationButtons
+    );
+} else {
+    initialiseNotificationButtons();
+}
