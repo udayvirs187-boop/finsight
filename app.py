@@ -34,6 +34,8 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY") or secrets.token_hex(32)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
+
+
 DATABASE = Path(__file__).with_name("finsight.db")
 
 PRIVATE_KEY = Path(
@@ -42,6 +44,16 @@ PRIVATE_KEY = Path(
         str(Path(__file__).with_name("private_key.pem")),
     )
 )
+
+PUBLIC_KEY_FILE = Path(__file__).with_name("vapid_public_key.txt")
+
+VAPID_CLAIMS = {
+    "sub": (
+        os.environ.get("VAPID_SUBJECT")
+        or "mailto:udayvirs187@gmail.com"
+    ).strip()
+}
+
 
 PUBLIC_KEY_FILE = Path(__file__).with_name("vapid_public_key.txt")
 
