@@ -55,16 +55,6 @@ VAPID_CLAIMS = {
 }
 
 
-PUBLIC_KEY_FILE = Path(__file__).with_name("vapid_public_key.txt")
-
-VAPID_CLAIMS = {
-    "sub": os.environ.get(
-        "VAPID_SUBJECT",
-        "mailto:finsight@example.com",
-    )
-}
-
-
 # --------------------------------------------------
 # DATABASE
 # --------------------------------------------------
