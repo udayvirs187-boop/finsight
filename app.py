@@ -813,8 +813,7 @@ def login():
         flash(f"Welcome back, {user['username']}!", "success")
         return redirect(url_for("index"))
 
-    if session.get("user_id"):
-        return redirect(url_for("index"))
+
 
     return render_template("login.html")
 
@@ -881,8 +880,6 @@ def signup():
         flash("Your Finsight account has been created.", "success")
         return redirect(url_for("index"))
 
-    if session.get("user_id"):
-        return redirect(url_for("index"))
 
     return render_template("signup.html")
 
