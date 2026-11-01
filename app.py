@@ -919,12 +919,20 @@ def send_push(subscription, title, body, url="/"):
         )
         return True
 
+
     except WebPushException as error:
-        app.logger.warning("Push delivery failed: %s", error)
-
         response = getattr(error, "response", None)
+        status_code = getattr(response, "status_code", None)
+        response_text = getattr(response, "text", "")
 
-        if response is not None and response.status_code in (404, 410):
+        app.logger.error(
+            "Push failed | HTTP status=%s | response=%s | error=%s",
+            status_code,
+            response_text[:1000],
+            error,
+        )
+
+        if status_code in (404, 410):
             with get_db_connection() as connection:
                 connection.execute(
                     "DELETE FROM push_subscriptions WHERE endpoint = ?",
@@ -932,6 +940,7 @@ def send_push(subscription, title, body, url="/"):
                 )
 
         return False
+
 
     except Exception:
         app.logger.exception("Unexpected push notification error")
