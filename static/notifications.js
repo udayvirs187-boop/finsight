@@ -17,7 +17,10 @@ const FINSIGHT_TEST_URL = "/api/push/test";
 function getViewId(providedViewId) {
     if (providedViewId !== undefined && providedViewId !== null) {
         const id = Number(providedViewId);
-        if (Number.isInteger(id) && id > 0) return id;
+
+        if (Number.isInteger(id) && id > 0) {
+            return id;
+        }
     }
 
     const params = new URLSearchParams(window.location.search);
@@ -31,7 +34,10 @@ function getViewId(providedViewId) {
 
     if (element) {
         const id = Number(element.dataset.viewId);
-        if (Number.isInteger(id) && id > 0) return id;
+
+        if (Number.isInteger(id) && id > 0) {
+            return id;
+        }
     }
 
     throw new Error(
@@ -46,7 +52,7 @@ async function fetchJSON(url, options = {}) {
     });
 
     const text = await response.text();
-    let data;
+    let data = {};
 
     try {
         data = text ? JSON.parse(text) : {};
@@ -150,13 +156,14 @@ async function enableNotifications(providedViewId) {
 
         const registration = await getServiceWorker();
         const publicKey = await getPublicVapidKey();
+
         const applicationServerKey =
             urlBase64ToUint8Array(publicKey);
 
         let subscription =
             await registration.pushManager.getSubscription();
 
-        // Remove an existing subscription if it uses another key.
+        // Remove the old subscription if it uses a different key.
         if (subscription) {
             const existingKey =
                 subscription.options.applicationServerKey;
@@ -180,6 +187,7 @@ async function enableNotifications(providedViewId) {
             }
         }
 
+        // Create a subscription with the current public key.
         if (!subscription) {
             subscription =
                 await registration.pushManager.subscribe({
@@ -188,6 +196,7 @@ async function enableNotifications(providedViewId) {
                 });
         }
 
+        // Save the subscription for this ticker view.
         const result = await fetchJSON(
             FINSIGHT_SUBSCRIBE_URL,
             {
@@ -289,10 +298,13 @@ async function disableNotifications() {
 // ==================================================
 
 function bindNotificationButton(selectors, action) {
-    const elements = document.querySelectorAll(selectors);
+    const buttons = document.querySelectorAll(selectors);
 
-    elements.forEach(button => {
-        if (button.dataset.finsightNotificationBound === "true") {
+    buttons.forEach(button => {
+        // Prevent duplicate event handlers.
+        if (
+            button.dataset.finsightNotificationBound === "true"
+        ) {
             return;
         }
 
@@ -301,7 +313,9 @@ function bindNotificationButton(selectors, action) {
         button.addEventListener("click", async event => {
             event.preventDefault();
 
-            if (button.disabled) return;
+            if (button.disabled) {
+                return;
+            }
 
             button.disabled = true;
 
@@ -312,6 +326,10 @@ function bindNotificationButton(selectors, action) {
                         ?.dataset.viewId;
 
                 await action(viewId);
+
+            } catch (error) {
+                showError("Notification action", error);
+
             } finally {
                 button.disabled = false;
             }
@@ -320,13 +338,15 @@ function bindNotificationButton(selectors, action) {
 }
 
 function initialiseNotificationButtons() {
+    // Matches the actual attributes in your view_table.html.
     bindNotificationButton(
         [
             "#enable-notifications",
             "#enableNotifications",
             "#enableNotificationsBtn",
             "#enable-notifications-btn",
-            "[data-action='enable-notifications']"
+            "[data-action='enable-notifications']",
+            "[data-enable-push]"
         ].join(","),
         enableNotifications
     );
@@ -337,7 +357,8 @@ function initialiseNotificationButtons() {
             "#testNotification",
             "#testNotificationBtn",
             "#test-notification-btn",
-            "[data-action='test-notification']"
+            "[data-action='test-notification']",
+            "[data-test-push]"
         ].join(","),
         sendTestNotification
     );
@@ -351,14 +372,29 @@ function initialiseNotificationButtons() {
         disableNotifications
     );
 
-    console.log("Finsight notification button setup complete.");
+    console.log("Finsight notification buttons initialised.");
+
+    console.log(
+        "Enable button found:",
+        document.querySelectorAll("[data-enable-push]").length
+    );
+
+    console.log(
+        "Test button found:",
+        document.querySelectorAll("[data-test-push]").length
+    );
 }
 
-// Keep compatibility with existing HTML onclick handlers.
+// ==================================================
+// GLOBAL FUNCTIONS
+// ==================================================
+
+// Preserve compatibility with existing HTML onclick handlers.
 window.enableNotifications = enableNotifications;
 window.sendTestNotification = sendTestNotification;
 window.disableNotifications = disableNotifications;
 
+// Initialise after the HTML has loaded.
 if (document.readyState === "loading") {
     document.addEventListener(
         "DOMContentLoaded",
