@@ -2,651 +2,181 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="icon" type="image/png"
-      href="{{ url_for('static', filename='finsight-logo.png') }}">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finsight | See Beyond Numbers</title>
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='style.css') }}">
 
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap"
           rel="stylesheet">
 
-    <style>
-        :root {
-            --olive: #343d29;
-            --sage: #a5ad91;
-            --cream: #f5f2e8;
-            --gold: #d4bd79;
-            --black: #171914;
-            --white: #fffdf6;
-            --muted: #77796d;
-            --border: #dedbce;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html, body {
-            margin: 0;
-            min-height: 100%;
-            width: 100%;
-        }
-
-        body {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background: var(--cream);
-            color: var(--black);
-            font-family: "DM Sans", sans-serif;
-        }
-
-        a {
-            text-decoration: none;
-        }
-
-        /* TOP BAR */
-
-        .topbar {
-            min-height: 78px;
-            width: 100%;
-            padding: 12px 3%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-            background: var(--olive);
-            color: var(--gold);
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 24px;
-        }
-
-        .quote {
-            color: var(--gold);
-            font-family: "Playfair Display", Georgia, serif;
-            font-size: 14px;
-            letter-spacing: 1.2px;
-        }
-
-        .logo-link {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            margin-left: auto;
-        }
-
-        .header-logo {
-            display: block;
-            width: 160px;
-            max-height: 54px;
-            object-fit: contain;
-            object-position: right center;
-        }
-
-        /* ADD TICKER DROPDOWN */
-
-        .dropdown-wrap {
-            position: relative;
-        }
-
-        .add-button {
-            padding: 11px 16px;
-            border: 1px solid var(--gold);
-            border-radius: 7px;
-            background: var(--gold);
-            color: var(--olive);
-            font-family: inherit;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .add-button:hover {
-            background: #e4d29c;
-        }
-
-        .dropdown {
-            position: absolute;
-            z-index: 100;
-            top: calc(100% + 9px);
-            left: 0;
-            min-width: 220px;
-            padding: 7px;
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 9px;
-            box-shadow: 0 10px 28px #00000018;
-        }
-
-        .dropdown a {
-            display: block;
-            padding: 12px;
-            border-radius: 5px;
-            color: var(--olive);
-            font-size: 13px;
-        }
-
-        .dropdown a:hover {
-            background: #eeeddf;
-        }
-
-        /* MAIN CONTENT */
-
-        .dashboard {
-            flex: 1;
-            width: 100%;
-            max-width: none;
-            padding: 32px 3%;
-        }
-
-        .welcome {
-            margin-bottom: 28px;
-        }
-
-        .eyebrow {
-            color: #777c64;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 9px;
-        }
-
-        h1, h2, h3 {
-            font-family: "Playfair Display", Georgia, serif;
-            color: var(--olive);
-        }
-
-        .welcome h1 {
-            margin: 0 0 10px;
-            font-size: clamp(30px, 4vw, 44px);
-            font-weight: 600;
-        }
-
-        .welcome p {
-            margin: 0;
-            max-width: 650px;
-            color: var(--muted);
-            font-size: 14px;
-            line-height: 1.7;
-        }
-
-        .section-heading {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-            margin: 30px 0 16px;
-        }
-
-        .section-heading h2 {
-            margin: 0;
-            font-size: 23px;
-        }
-
-        .card {
-            width: 100%;
-            margin-bottom: 20px;
-            padding: 24px;
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-        }
-
-        .empty-state {
-            padding: 38px 20px;
-            text-align: center;
-        }
-
-        .empty-state h2 {
-            margin-top: 0;
-        }
-
-        .empty-state p {
-            color: var(--muted);
-            line-height: 1.7;
-        }
-
-        .primary-link {
-            display: inline-block;
-            padding: 11px 16px;
-            border: 1px solid var(--olive);
-            border-radius: 7px;
-            background: var(--olive);
-            color: var(--gold);
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        .chip {
-            display: inline-block;
-            padding: 8px 11px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--olive);
-            font-size: 12px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        /* STOCK REPORTS */
-
-        .stock-heading {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .stock-heading h2 {
-            margin: 0;
-            font-size: 23px;
-        }
-
-        .price-summary {
-            display: flex;
-            align-items: baseline;
-            flex-wrap: wrap;
-            gap: 14px;
-            margin: 22px 0;
-        }
-
-        .price-summary strong {
-            color: var(--olive);
-            font-family: "Playfair Display", Georgia, serif;
-            font-size: 30px;
-        }
-
-        .price-summary span {
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .up {
-            color: #47734c !important;
-        }
-
-        .down {
-            color: #a54f43 !important;
-        }
-
-        .metric-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 13px;
-            margin-top: 18px;
-        }
-
-        .metric {
-            min-width: 0;
-            padding: 18px;
-            background: var(--cream);
-            border: 1px solid var(--border);
-            border-radius: 9px;
-        }
-
-        .metric span {
-            display: block;
-            margin-bottom: 12px;
-            color: var(--muted);
-            font-size: 11px;
-            line-height: 1.5;
-        }
-
-        .metric strong {
-            display: block;
-            color: var(--olive);
-            font-family: "Playfair Display", Georgia, serif;
-            font-size: 24px;
-            overflow-wrap: anywhere;
-        }
-
-        .metric p {
-            margin: 9px 0 0;
-            color: var(--muted);
-            font-size: 11px;
-            line-height: 1.6;
-        }
-
-        .updated {
-            margin: 16px 0 0;
-            color: var(--muted);
-            font-size: 11px;
-            overflow-wrap: anywhere;
-        }
-
-        .error-message {
-            color: #a54f43;
-            font-size: 13px;
-        }
-
-        /* SAVED VIEWS */
-
-        .view-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 14px;
-            padding: 17px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .view-row:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .view-row strong {
-            color: var(--olive);
-            font-size: 14px;
-        }
-
-        .view-row p {
-            margin: 6px 0 0;
-            color: var(--muted);
-            font-size: 12px;
-        }
-
-        /* BOTTOM BAR */
-
-        .bottom-bar {
-            width: 100%;
-            margin-top: auto;
-            padding: 19px 3%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-            background: var(--black);
-            color: var(--gold);
-            font-size: 11px;
-        }
-
-        .bottom-bar a {
-            color: var(--gold);
-        }
-
-        /* RESPONSIVE LAYOUT */
-
-        @media (max-width: 900px) {
-            .metric-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-
-        @media (max-width: 600px) {
-            .topbar {
-                min-height: 68px;
-                padding: 10px 4%;
-            }
-
-            .header-left {
-                gap: 10px;
-            }
-
-            .quote {
-                display: none;
-            }
-
-            .header-logo {
-                width: 115px;
-                max-height: 45px;
-            }
-
-            .dashboard {
-                padding: 24px 4%;
-            }
-
-            .card {
-                padding: 17px;
-            }
-
-            .metric-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 9px;
-            }
-
-            .metric {
-                padding: 13px;
-            }
-
-            .metric strong {
-                font-size: 20px;
-            }
-
-            .bottom-bar {
-                padding: 17px 4%;
-                flex-wrap: wrap;
-            }
-        }
-    </style>
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
 </head>
 
 <body>
 
-<header class="topbar">
-    <div class="header-left">
-        <div class="dropdown-wrap">
-            <button
-                class="add-button"
-                id="menuButton"
-                type="button"
-                aria-expanded="false"
-                aria-controls="tickerMenu">
-                + Add ticker ▾
-            </button>
+<header class="top-bar">
+    <a href="{{ url_for('index') }}" class="brand">
+        <img src="{{ url_for('static', filename='finsight-logo.png') }}"
+             alt="Finsight logo"
+             class="brand-logo"
+             onerror="this.style.display='none'">
 
-            <div class="dropdown" id="tickerMenu" hidden>
-                <a href="{{ url_for('create_ticker') }}">
-                    + Create ticker view
-                </a>
-                <a href="{{ url_for('my_tables') }}">
-                    View ticker views
-                </a>
-            </div>
-        </div>
-
-        <span class="quote">SEE BEYOND NUMBERS.</span>
-    </div>
-
-    <a href="{{ url_for('index') }}" class="logo-link">
-        <img
-            src="{{ url_for('static', filename='finsight-logo.png') }}"
-            alt="Finsight"
-            class="header-logo">
+        <span class="brand-name">Finsight</span>
     </a>
+
+    <p class="tagline">SEE BEYOND NUMBERS</p>
+
+    <nav class="top-navigation">
+        <a href="{{ url_for('index') }}">Dashboard</a>
+        <a href="{{ url_for('my_tables') }}">My ticker views</a>
+        <a href="{{ url_for('create_ticker') }}" class="add-button">
+            + Create ticker view
+        </a>
+    </nav>
 </header>
 
 <main class="dashboard">
 
-    <section class="welcome">
-        <div class="eyebrow">YOUR MARKET RESEARCH WORKSPACE</div>
-        <h1>See beyond the numbers.</h1>
-        <p>
-            Your selected stocks, calculated indicators and market insights,
-            all in one place.
-        </p>
+    <section class="welcome-section">
+        <div>
+            <p class="eyebrow">YOUR MARKET OVERVIEW</p>
+            <h1>Your dashboard</h1>
+            <p class="subtitle">
+                Your saved ticker views and the stocks you're tracking.
+            </p>
+        </div>
+
+        <a href="{{ url_for('create_ticker') }}" class="primary-button">
+            + Add ticker view
+        </a>
     </section>
 
-    <div class="section-heading">
-        <h2>Your market overview</h2>
-        <a href="{{ url_for('create_ticker') }}" class="primary-link">
-            + Create ticker view
-        </a>
-    </div>
-
-    {% if stocks %}
-        {% for result in stocks %}
-            <section class="card">
-                <div class="stock-heading">
-                    <div>
-                        <div class="eyebrow">{{ result.symbol }}</div>
-                        <h2>{{ result.symbol }} market report</h2>
-                    </div>
-
-                    <a class="chip"
-                       href="{{ url_for('stock_detail', symbol=result.symbol) }}">
-                        Full details →
-                    </a>
-                </div>
-
-                {% if result.data %}
-                    {% set stock = result.data %}
-
-                    <div class="price-summary">
-                        <strong>
-                            {{ stock.currency }} {{ "%.2f"|format(stock.price) }}
-                        </strong>
-
-                        <span class="{{ 'up' if stock.price_change >= 0 else 'down' }}">
-                            {{ '+' if stock.price_change >= 0 else '' }}{{ "%.2f"|format(stock.price_change) }}
-                            ({{ '+' if stock.price_change_percent >= 0 else '' }}{{ "%.2f"|format(stock.price_change_percent) }}%)
-                        </span>
-                    </div>
-
-                    <div class="metric-grid">
-                        <article class="metric">
-                            <span>RSI · 14 periods</span>
-                            <strong>
-                                {{ "%.2f"|format(stock.rsi) if stock.rsi is not none else "N/A" }}
-                            </strong>
-                            <p>
-                                {% if stock.rsi is not none and stock.rsi >= 70 %}
-                                    Higher RSI range
-                                {% elif stock.rsi is not none and stock.rsi <= 30 %}
-                                    Lower RSI range
-                                {% else %}
-                                    Relative Strength Index
-                                {% endif %}
-                            </p>
-                        </article>
-
-                        <article class="metric">
-                            <span>MACD</span>
-                            <strong>
-                                {{ "%.3f"|format(stock.macd) if stock.macd is not none else "N/A" }}
-                            </strong>
-                            <p>
-                                Signal:
-                                {{ "%.3f"|format(stock.macd_signal) if stock.macd_signal is not none else "N/A" }}
-                            </p>
-                        </article>
-
-                        <article class="metric">
-                            <span>Hourly price change</span>
-                            <strong class="{{ 'up' if stock.price_change >= 0 else 'down' }}">
-                                {{ '+' if stock.price_change_percent >= 0 else '' }}{{ "%.2f"|format(stock.price_change_percent) }}%
-                            </strong>
-                            <p>Change between the latest two hourly candles</p>
-                        </article>
-
-                        <article class="metric">
-                            <span>Relative volume</span>
-                            <strong>
-                                {{ "%.2f"|format(stock.relative_volume) ~ "×" if stock.relative_volume is not none else "N/A" }}
-                            </strong>
-                            <p>Latest hourly volume compared with the previous 20 hourly candles</p>
-                        </article>
-                    </div>
-
-                    <p class="updated">
-                        Market data timestamp: {{ stock.last_updated }}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <p class="flash-message {{ category }}">
+                        {{ message }}
                     </p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
 
-                {% else %}
-                    <p class="error-message">
-                        Unable to calculate indicators for {{ result.symbol }}:
-                        {{ result.error }}
-                    </p>
-                {% endif %}
-            </section>
-        {% endfor %}
+    <section class="section">
+        <div class="section-heading">
+            <h2>Your ticker views</h2>
+            <a href="{{ url_for('my_tables') }}">View all →</a>
+        </div>
 
-    {% else %}
-        <section class="card empty-state">
-            <h2>Your dashboard is ready</h2>
-            <p>
-                Create a ticker view and select your stocks.
-                Finsight will calculate the indicators for each selected stock.
-            </p>
-            <a href="{{ url_for('create_ticker') }}" class="primary-link">
-                + Create your first ticker view
-            </a>
-        </section>
-    {% endif %}
-
-    <div class="section-heading">
-        <h2>Saved ticker views</h2>
-        <a href="{{ url_for('my_tables') }}" class="chip">View all →</a>
-    </div>
-
-    <section class="card">
         {% if views %}
-            {% for view in views %}
-                <div class="view-row">
-                    <div>
-                        <strong>{{ view.name }}</strong>
-                        <p>{{ view.tickers | join(', ') }}</p>
-                    </div>
+            <div class="ticker-view-grid">
 
-                    <a class="chip"
-                       href="{{ url_for('view_table', id=view.id) }}"
-                        Open view →
-                    </a>
-                </div>
-            {% endfor %}
+                {% for view in views %}
+                    <article class="ticker-view-card">
+
+                        <div class="card-top">
+                            <span class="card-label">TICKER VIEW</span>
+
+                            {% if view.hourly_reports %}
+                                <span class="status">
+                                    Reports enabled
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <h3>{{ view.name }}</h3>
+
+                        <p class="ticker-count">
+                            {{ view.tickers | length }}
+                            stock{% if view.tickers | length != 1 %}s{% endif %}
+                            tracked
+                        </p>
+
+                        <div class="ticker-tags">
+                            {% for ticker in view.tickers %}
+                                <span class="ticker-tag">
+                                    {{ ticker }}
+                                </span>
+                            {% endfor %}
+                        </div>
+
+                        <a class="card-link"
+                           href="{{ url_for('view_table', id=view.id) }}">
+                            Open ticker view →
+                        </a>
+
+                    </article>
+                {% endfor %}
+
+            </div>
+
         {% else %}
-            <p style="color:var(--muted);font-size:13px;">
-                No saved views yet. Use “Create ticker view” to get started.
-            </p>
+            <div class="empty-state">
+                <div class="empty-icon">＋</div>
+                <h3>No ticker views yet</h3>
+                <p>
+                    Create your first ticker view to start tracking
+                    stocks and exploring market data.
+                </p>
+
+                <a href="{{ url_for('create_ticker') }}"
+                   class="primary-button">
+                    Create your first ticker view
+                </a>
+            </div>
         {% endif %}
     </section>
 
-    <p style="color:var(--muted);font-size:11px;line-height:1.7;">
-        Market data may be delayed or incomplete. Technical indicators are
-        research tools, not guarantees of future performance or financial advice.
-    </p>
+    <section class="section">
+        <div class="section-heading">
+            <h2>Tracked stocks</h2>
+            <span class="muted">From your ticker views</span>
+        </div>
+
+        {% if stocks %}
+            <div class="stock-grid">
+                {% for stock in stocks %}
+                    <article class="stock-card">
+                        <div>
+                            <h3>{{ stock.name }}</h3>
+                            <span class="muted">{{ stock.symbol }}</span>
+                        </div>
+
+                        <a href="{{ url_for('stock_detail', symbol=stock.symbol) }}"
+                           class="card-link">
+                            View stock →
+                        </a>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="simple-empty-state">
+                <p>
+                    Stock information will appear here after you create
+                    a ticker view.
+                </p>
+            </div>
+        {% endif %}
+    </section>
 
 </main>
 
 <footer class="bottom-bar">
-    <span>© 2026 Finsight · See beyond numbers.</span>
+    <span>Finsight</span>
 
-    <div style="display:flex;gap:18px;">
-        <a href="{{ url_for('login') }}">Log in</a>
-        <a href="{{ url_for('signup') }}">Sign up</a>
+    <div>
+        {% if session.get('user_id') %}
+            <a href="{{ url_for('logout') }}">Log out</a>
+        {% else %}
+            <a href="{{ url_for('login') }}">Login</a>
+            <a href="{{ url_for('signup') }}">Sign up</a>
+        {% endif %}
     </div>
 </footer>
-
-<script>
-const menuButton = document.getElementById("menuButton");
-const tickerMenu = document.getElementById("tickerMenu");
-
-menuButton.addEventListener("click", function (event) {
-    event.stopPropagation();
-
-    const willOpen = tickerMenu.hidden;
-    tickerMenu.hidden = !willOpen;
-    menuButton.setAttribute("aria-expanded", String(willOpen));
-});
-
-document.addEventListener("click", function (event) {
-    if (!event.target.closest(".dropdown-wrap")) {
-        tickerMenu.hidden = true;
-        menuButton.setAttribute("aria-expanded", "false");
-    }
-});
-</script>
 
 </body>
 </html>
